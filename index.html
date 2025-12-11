@@ -1,0 +1,1023 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { initializeApp } from 'firebase/app';
+import { 
+  getAuth, 
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  signInWithCustomToken
+} from 'firebase/auth';
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  setDoc,
+  doc, 
+  onSnapshot, 
+  serverTimestamp,
+  query,
+  deleteDoc
+} from 'firebase/firestore';
+import { 
+  Users, 
+  Monitor, 
+  ShieldCheck, 
+  UserPlus, 
+  Clock, 
+  CheckCircle, 
+  XCircle, 
+  Bell,
+  ArrowRight,
+  RefreshCw,
+  LogOut,
+  GraduationCap,
+  MapPin,
+  Lock,
+  KeyRound,
+  Settings,
+  Plus,
+  Trash2,
+  Filter,
+  LogIn
+} from 'lucide-react';
+
+// --- Firebase Configuration & Initialization ---
+
+// NOTE: To use your own Firebase project, uncomment the 'customFirebaseConfig' block below.
+// You MUST enable "Google" sign-in in your Firebase Console -> Authentication -> Sign-in method.
+
+/*
+const customFirebaseConfig = {
+  apiKey: "AIzaSyBAnKm7xNYuxEmg14lYgx1sFlZaTlfYyjw",
+  authDomain: "gnhs-queueing-system.firebaseapp.com",
+  databaseURL: "https://gnhs-queueing-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "gnhs-queueing-system",
+  storageBucket: "gnhs-queueing-system.firebasestorage.app",
+  messagingSenderId: "415667772828",
+  appId: "1:415667772828:web:48f97fe6179029fb797c59",
+  measurementId: "G-1PD1WZMK34"
+};
+*/
+
+// For this preview environment to work immediately, we use the internal config.
+// Swap this with 'customFirebaseConfig' when you deploy.
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'gnhs-queue-v1';
+
+// --- Types ---
+type TicketStatus = 'waiting' | 'serving' | 'completed' | 'cancelled';
+type ViewType = 'home' | 'register' | 'dashboard' | 'admin';
+
+interface Ticket {
+  id: string;
+  studentName: string;
+  purpose: string; // Now maps to dynamic 'Service'
+  gradeLevel: string;
+  strand?: string; // Optional, for SHS
+  status: TicketStatus;
+  ticketNumber: string;
+  createdAt: any;
+}
+
+interface AppSettings {
+  adminPin: string;
+  strands: string[];
+  services: string[];
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  adminPin: '1234',
+  strands: ['STEM', 'ABM', 'HUMSS', 'GAS', 'TVL-ICT', 'TVL-HE'],
+  services: ['Enrollment', 'Tuition Payment', 'Registrar Inquiry', 'ID Processing', 'Form 137 Request']
+};
+
+// --- Helper Component: Live Clock ---
+const LiveClock = () => {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="text-right hidden md:block">
+       <div className="text-sm font-bold text-slate-900">Enrollment & Finance Queue</div>
+       <div className="text-sm text-blue-700 font-mono font-bold mt-0.5">
+         {time.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+         <span className="mx-2 text-slate-300">|</span>
+         {time.toLocaleTimeString()}
+       </div>
+    </div>
+  );
+};
+
+// --- Main Application Component ---
+export default function EnrollmentQueueApp() {
+  const [user, setUser] = useState<any>(null);
+  const [view, setView] = useState<ViewType>('home');
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  // Renamed state to avoid potential conflict with Settings component
+  const [appSettings, setAppSettings] = useState<AppSettings>(DEFAULT_SETTINGS); 
+  const [loading, setLoading] = useState(true);
+
+  // Admin State
+  const [adminFilter, setAdminFilter] = useState<string>('All');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  // Security State
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pendingView, setPendingView] = useState<ViewType | null>(null);
+  const [pinError, setPinError] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // 1. Authentication
+  useEffect(() => {
+    // Only listen for auth state, do not auto-sign in anonymously
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Google Sign-in error:", error);
+      alert("Failed to sign in. Please try again or check Firebase Console settings.");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setView('home');
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
+
+  // 2. Data Syncing (Tickets & Settings)
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    // Listen to Tickets
+    // Path: artifacts/{appId}/public/data/enrollment_queue (Collection)
+    const qTickets = query(collection(db, 'artifacts', appId, 'public', 'data', 'enrollment_queue'));
+    const unsubTickets = onSnapshot(qTickets, (snapshot) => {
+      const fetchedTickets = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Ticket));
+      
+      fetchedTickets.sort((a, b) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeA - timeB;
+      });
+
+      setTickets(fetchedTickets);
+      setLoading(false);
+    });
+
+    // Listen to Settings
+    // FIXED PATH: Must have even number of segments. 
+    // New (Valid): artifacts/{appId}/public/data/settings/queue_config (6 segments)
+    const docSettings = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'queue_config');
+    const unsubSettings = onSnapshot(docSettings, (snapshot) => {
+      if (snapshot.exists()) {
+        setAppSettings(snapshot.data() as AppSettings);
+      } else {
+        // Initialize if doesn't exist
+        setDoc(docSettings, DEFAULT_SETTINGS);
+      }
+    });
+
+    return () => {
+      unsubTickets();
+      unsubSettings();
+    };
+  }, [user]);
+
+  // Derived State
+  // Filter tickets based on Admin selection (All or specific service)
+  const filteredTickets = useMemo(() => {
+     if (adminFilter === 'All') return tickets;
+     return tickets.filter(t => t.purpose === adminFilter);
+  }, [tickets, adminFilter]);
+
+  const waitingTickets = useMemo(() => filteredTickets.filter(t => t.status === 'waiting'), [filteredTickets]);
+  const servingTicket = useMemo(() => filteredTickets.find(t => t.status === 'serving'), [filteredTickets]);
+  const completedTickets = useMemo(() => filteredTickets.filter(t => t.status === 'completed'), [filteredTickets]);
+
+  // --- Actions ---
+
+  const addTicket = async (name: string, purpose: string, gradeLevel: string, strand?: string) => {
+    if (!user) return;
+    const ticketNum = `Q-${String(tickets.length + 1).padStart(3, '0')}`;
+    try {
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'enrollment_queue'), {
+        studentName: name,
+        purpose: purpose,
+        gradeLevel: gradeLevel,
+        strand: strand || null,
+        status: 'waiting',
+        ticketNumber: ticketNum,
+        createdAt: serverTimestamp()
+      });
+      return ticketNum;
+    } catch (e) {
+      console.error("Error adding ticket", e);
+      throw e;
+    }
+  };
+
+  const updateStatus = async (ticketId: string, newStatus: TicketStatus) => {
+    if (!user) return;
+    try {
+      const ref = doc(db, 'artifacts', appId, 'public', 'data', 'enrollment_queue', ticketId);
+      await updateDoc(ref, { status: newStatus });
+    } catch (e) {
+      console.error("Error updating status", e);
+    }
+  };
+
+  const updateSettings = async (newSettings: AppSettings) => {
+    if (!user) return;
+    try {
+       // FIXED PATH: Matches the listener path
+       const ref = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'queue_config');
+       await updateDoc(ref, newSettings as any);
+    } catch (e) {
+      console.error("Error updating settings", e);
+    }
+  };
+
+  const callNext = async () => {
+    if (servingTicket) await updateStatus(servingTicket.id, 'completed');
+    if (waitingTickets.length > 0) await updateStatus(waitingTickets[0].id, 'serving');
+  };
+
+  // --- Security Logic ---
+  const handleNavigation = (target: ViewType) => {
+    if (target === 'register') {
+      setView('register');
+    } else {
+      setPendingView(target);
+      setPinInput('');
+      setPinError(false);
+      setShowPinModal(true);
+    }
+  };
+
+  const verifyPin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pinInput === appSettings.adminPin) {
+      if (pendingView) setView(pendingView);
+      setShowPinModal(false);
+    } else {
+      setPinError(true);
+      setPinInput('');
+    }
+  };
+
+  // --- Sub-Components (Modals) ---
+
+  const SettingsModal = () => {
+    const [localPin, setLocalPin] = useState(appSettings.adminPin);
+    const [newService, setNewService] = useState('');
+    const [newStrand, setNewStrand] = useState('');
+
+    const handleSavePin = () => updateSettings({ ...appSettings, adminPin: localPin });
+    
+    const addService = () => {
+      if (newService && !appSettings.services.includes(newService)) {
+        updateSettings({ ...appSettings, services: [...appSettings.services, newService] });
+        setNewService('');
+      }
+    };
+    const removeService = (s: string) => {
+      updateSettings({ ...appSettings, services: appSettings.services.filter(item => item !== s) });
+    };
+
+    const addStrand = () => {
+      if (newStrand && !appSettings.strands.includes(newStrand)) {
+        updateSettings({ ...appSettings, strands: [...appSettings.strands, newStrand] });
+        setNewStrand('');
+      }
+    };
+    const removeStrand = (s: string) => {
+      updateSettings({ ...appSettings, strands: appSettings.strands.filter(item => item !== s) });
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <Settings size={24} className="text-slate-500" />
+              System Configuration
+            </h3>
+            <button onClick={() => setShowSettingsModal(false)} className="text-slate-400 hover:text-red-500">
+              <XCircle size={24} />
+            </button>
+          </div>
+
+          <div className="p-6 overflow-y-auto space-y-8">
+            {/* PIN Settings */}
+            <section>
+              <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Security</h4>
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Admin PIN Code</label>
+                  <input 
+                    type="text" 
+                    value={localPin}
+                    onChange={(e) => setLocalPin(e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono tracking-widest"
+                    maxLength={4}
+                  />
+                </div>
+                <button onClick={handleSavePin} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
+                  Update PIN
+                </button>
+              </div>
+            </section>
+
+            {/* Services Settings */}
+            <section>
+              <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Queue Services (Purposes)</h4>
+              <div className="flex gap-2 mb-3">
+                <input 
+                  type="text" 
+                  value={newService}
+                  onChange={(e) => setNewService(e.target.value)}
+                  placeholder="New Service (e.g. Finance)"
+                  className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <button onClick={addService} className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+                  <Plus size={20} />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(appSettings.services || []).map(s => (
+                  <span key={s} className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                    {s}
+                    <button onClick={() => removeService(s)} className="text-slate-400 hover:text-red-500"><Trash2 size={14} /></button>
+                  </span>
+                ))}
+              </div>
+            </section>
+
+             {/* Strands Settings */}
+            <section>
+              <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">SHS Strands</h4>
+              <div className="flex gap-2 mb-3">
+                <input 
+                  type="text" 
+                  value={newStrand}
+                  onChange={(e) => setNewStrand(e.target.value)}
+                  placeholder="New Strand (e.g. STEM)"
+                  className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <button onClick={addStrand} className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+                  <Plus size={20} />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(appSettings.strands || []).map(s => (
+                  <span key={s} className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                    {s}
+                    <button onClick={() => removeStrand(s)} className="text-slate-400 hover:text-red-500"><Trash2 size={14} /></button>
+                  </span>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // --- Views ---
+
+  const renderLogin = () => (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+       {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-x-1/2 translate-y-1/2"></div>
+
+      <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl relative z-10 text-center border border-slate-100">
+        <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+            <GraduationCap size={40} className="text-white" />
+        </div>
+        <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Gutad National High School</h1>
+        <p className="text-slate-500 mb-8">Queue Management System</p>
+        
+        <button 
+          onClick={handleGoogleLogin}
+          className="w-full bg-white border border-slate-300 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center justify-center gap-3 shadow-sm"
+        >
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-6 h-6" alt="Google" />
+          Sign in with Google
+        </button>
+        <p className="text-xs text-slate-400 mt-6">
+          Authorized personnel only.
+        </p>
+      </div>
+    </div>
+  );
+
+  const renderHome = () => (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-x-1/2 translate-y-1/2"></div>
+
+      <div className="absolute top-6 right-6 z-20">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-full text-sm font-medium transition-colors"
+        >
+           <LogOut size={16} /> Sign Out
+        </button>
+      </div>
+
+      <div className="max-w-5xl w-full text-center space-y-8 relative z-10">
+        <div className="flex justify-center mb-6">
+          <div className="bg-blue-600 p-5 rounded-2xl shadow-lg shadow-blue-200">
+            <GraduationCap size={56} className="text-white" />
+          </div>
+        </div>
+        
+        <div>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-3">
+            Gutad National High School
+          </h1>
+          <p className="text-xl md:text-2xl text-blue-600 font-medium">
+            Enrollment & Finance Queue System
+          </p>
+          <div className="flex items-center justify-center gap-2 mt-4 text-slate-500 text-sm bg-slate-50 inline-flex px-4 py-2 rounded-full border border-slate-100">
+             <MapPin size={16} className="text-yellow-600" />
+             <span>Gutad, Floridablanca, Pampanga</span>
+          </div>
+        </div>
+        
+        <p className="text-slate-500 max-w-2xl mx-auto">
+          Welcome. Please select a terminal to proceed.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          {/* Student Registration Card - PUBLIC */}
+          <button 
+            onClick={() => handleNavigation('register')}
+            className="group relative bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 text-left hover:border-blue-300"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <UserPlus size={64} className="text-blue-600" />
+            </div>
+            <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <UserPlus className="text-blue-600" size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Student Kiosk</h3>
+            <p className="text-slate-500 text-sm">Register for Enrollment, Finance, or Registrar.</p>
+          </button>
+
+          {/* Public Dashboard Card - PROTECTED */}
+          <button 
+            onClick={() => handleNavigation('dashboard')}
+            className="group relative bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 text-left hover:border-yellow-300"
+          >
+            <div className="absolute top-4 right-4">
+               <Lock size={16} className="text-slate-300" />
+            </div>
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <Monitor size={64} className="text-yellow-600" />
+            </div>
+            <div className="h-12 w-12 bg-yellow-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Monitor className="text-yellow-600" size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Queue Display</h3>
+            <p className="text-slate-500 text-sm">Large screen view. (Requires PIN)</p>
+          </button>
+
+          {/* Admin Card - PROTECTED */}
+          <button 
+            onClick={() => handleNavigation('admin')}
+            className="group relative bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 text-left hover:border-blue-300"
+          >
+            <div className="absolute top-4 right-4">
+               <Lock size={16} className="text-slate-300" />
+            </div>
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <ShieldCheck size={64} className="text-blue-800" />
+            </div>
+            <div className="h-12 w-12 bg-slate-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <ShieldCheck className="text-blue-800" size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Admin Console</h3>
+            <p className="text-slate-500 text-sm">Staff controls & Config. (Requires PIN)</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderRegister = () => {
+    const [name, setName] = useState('');
+    // Use first available service or default
+    const [purpose, setPurpose] = useState(appSettings.services[0] || 'Enrollment');
+    const [gradeLevel, setGradeLevel] = useState('Grade 7');
+    const [strand, setStrand] = useState(appSettings.strands[0] || 'STEM');
+    const [lastTicket, setLastTicket] = useState<string | null>(null);
+
+    const isSeniorHigh = gradeLevel === 'Grade 11' || gradeLevel === 'Grade 12';
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!name.trim()) return;
+      // If not senior high, strand is undefined
+      const finalStrand = isSeniorHigh ? strand : undefined;
+      const ticketNum = await addTicket(name, purpose, gradeLevel, finalStrand);
+      setLastTicket(ticketNum);
+      setName('');
+      // Reset defaults
+      setPurpose(appSettings.services[0] || 'Enrollment');
+      setGradeLevel('Grade 7');
+    };
+
+    if (lastTicket) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+          <div className="bg-white max-w-md w-full p-8 rounded-3xl shadow-2xl text-center border-t-8 border-yellow-400">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+              <CheckCircle className="text-green-600" size={40} />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-2">You're on the list!</h2>
+            <p className="text-slate-500 mb-8">Please wait for your number to be called.</p>
+            
+            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 mb-8 relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-16 h-16 bg-blue-100 rounded-bl-full opacity-50"></div>
+              <span className="text-blue-600 text-sm uppercase tracking-wider font-bold">Your Ticket Number</span>
+              <div className="text-6xl font-black text-blue-800 mt-2 font-mono tracking-tight">{lastTicket}</div>
+            </div>
+
+            <button 
+              onClick={() => setLastTicket(null)}
+              className="w-full bg-slate-900 text-white py-4 rounded-xl font-semibold hover:bg-slate-800 transition-colors shadow-lg"
+            >
+              Back to Start
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background Blobs */}
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-yellow-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
+
+        <div className="bg-white max-w-lg w-full p-8 md:p-12 rounded-3xl shadow-2xl relative z-10 border border-slate-100">
+          <button onClick={() => handleNavigation('home')} className="absolute top-6 right-6 text-slate-300 hover:text-red-500 transition-colors">
+            <LogOut size={20} />
+          </button>
+          
+          <div className="mb-8 text-center md:text-left">
+            <h3 className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-1 flex items-center gap-2">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+              Gutad National High School
+            </h3>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-3">Student Check-in</h2>
+            <p className="text-slate-500">Enter your details to join the queue.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Juan dela Cruz"
+                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-lg font-medium"
+              />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 ml-1">Purpose / Service</label>
+                <select
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-lg appearance-none font-medium"
+                >
+                  {(appSettings.services || []).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 ml-1">Grade Level</label>
+                <select
+                  value={gradeLevel}
+                  onChange={(e) => setGradeLevel(e.target.value)}
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-lg appearance-none font-medium"
+                >
+                  <option>Grade 7</option>
+                  <option>Grade 8</option>
+                  <option>Grade 9</option>
+                  <option>Grade 10</option>
+                  <option>Grade 11</option>
+                  <option>Grade 12</option>
+                </select>
+              </div>
+
+              <div className={`space-y-2 transition-opacity duration-200 ${isSeniorHigh ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                 <label className="text-sm font-bold text-slate-700 ml-1">Strand</label>
+                 <select
+                   value={strand}
+                   onChange={(e) => setStrand(e.target.value)}
+                   disabled={!isSeniorHigh}
+                   className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-lg appearance-none font-medium"
+                 >
+                   {(appSettings.strands || []).map(s => (
+                     <option key={s} value={s}>{s}</option>
+                   ))}
+                 </select>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!user}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+            >
+              Get Ticket <ArrowRight size={20} />
+            </button>
+          </form>
+          
+          <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-slate-400 text-sm">
+            <span>Current Waiting: <strong className="text-blue-600">{tickets.filter(t => t.status === 'waiting').length}</strong></span>
+            <span>Status: <strong className="text-green-600">Online</strong></span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderDashboard = () => {
+    // Show GLOBAL serving ticket (regardless of filter) so the display always shows who is actually being served.
+    const globalServingTicket = tickets.find(t => t.status === 'serving');
+
+    return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Light Mode Header */}
+      <header className="bg-white px-6 py-5 border-b border-slate-200 flex justify-between items-center shadow-sm z-20">
+        <div className="flex items-center gap-5">
+          <div className="bg-blue-600 p-3 rounded-xl shadow-md">
+            <GraduationCap size={32} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Gutad National High School</h1>
+            <p className="text-slate-500 text-sm flex items-center gap-2 font-medium">
+               <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+               <span>Gutad, Floridablanca, Pampanga</span> 
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <LiveClock />
+          <button onClick={() => handleNavigation('home')} className="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-slate-100 rounded-lg">
+            <LogOut size={24} />
+          </button>
+        </div>
+      </header>
+
+      <div className="flex-1 p-6 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 overflow-hidden max-w-[1920px] mx-auto w-full">
+        {/* NOW SERVING (Main Focus) */}
+        <div className="lg:col-span-7 flex flex-col">
+          <div className="flex-1 bg-blue-700 rounded-3xl p-2 relative overflow-hidden shadow-2xl shadow-blue-200">
+            {/* Decorative Patterns */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-30 translate-x-1/3 -translate-y-1/3"></div>
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-x-1/3 translate-y-1/3"></div>
+            
+            <div className="h-full bg-gradient-to-br from-blue-700 to-blue-900 rounded-[20px] flex flex-col items-center justify-center p-12 text-center relative z-10 border border-white/10">
+              <span className="inline-flex items-center gap-2 bg-yellow-400 text-blue-900 px-8 py-3 rounded-full font-black text-lg uppercase tracking-widest mb-10 shadow-lg shadow-yellow-900/20 animate-pulse">
+                Now Serving
+              </span>
+              
+              {globalServingTicket ? (
+                <>
+                  <div className="text-[10rem] md:text-[13rem] font-black leading-none tracking-tighter mb-8 font-mono text-white drop-shadow-2xl">
+                    {globalServingTicket.ticketNumber}
+                  </div>
+                  <div className="w-full bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                    <h2 className="text-4xl md:text-5xl font-bold text-white truncate max-w-3xl mx-auto mb-3">
+                      {globalServingTicket.studentName}
+                    </h2>
+                    <div className="flex flex-wrap items-center justify-center gap-3 text-2xl text-blue-100 font-medium">
+                      <span className="bg-white/20 px-4 py-1 rounded-lg border border-white/20 text-lg">{globalServingTicket.gradeLevel} {globalServingTicket.strand ? `(${globalServingTicket.strand})` : ''}</span>
+                      <span className="text-yellow-400">•</span>
+                      <span className="font-bold text-yellow-300">{globalServingTicket.purpose}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center opacity-50">
+                  <div className="bg-white/10 p-6 rounded-full mb-6">
+                     <RefreshCw size={60} className="text-white animate-spin-slow" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-blue-100">Waiting for next student...</h2>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* UP NEXT LIST (Light Mode) */}
+        <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200 shadow-xl flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <Users className="text-blue-600" /> Up Next
+            </h3>
+            <span className="text-sm font-bold bg-blue-100 text-blue-700 px-3 py-1 rounded-full">{tickets.filter(t => t.status === 'waiting').length} Waiting</span>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-slate-50/50">
+            {tickets.filter(t => t.status === 'waiting').length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle size={32} className="text-slate-300" />
+                </div>
+                <p className="font-medium">Queue is empty</p>
+              </div>
+            ) : (
+              tickets.filter(t => t.status === 'waiting').slice(0, 6).map((ticket, index) => (
+                <div key={ticket.id} className={`flex items-center justify-between p-5 bg-white rounded-xl border shadow-sm transition-all group ${index === 0 ? 'border-yellow-400 shadow-yellow-100 ring-1 ring-yellow-400' : 'border-slate-200 hover:border-blue-300'}`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl font-bold font-mono transition-colors border ${index === 0 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                      {ticket.ticketNumber}
+                    </div>
+                    <div>
+                      <p className="font-bold text-lg text-slate-800">{ticket.studentName}</p>
+                      <div className="flex items-center gap-2 text-sm text-slate-500 flex-wrap">
+                        <span className={`font-semibold ${index === 0 ? 'text-yellow-600' : 'text-slate-500'}`}>
+                            {ticket.gradeLevel} {ticket.strand ? `• ${ticket.strand}` : ''}
+                        </span>
+                        <span>•</span>
+                        <span className="text-blue-600 font-medium">{ticket.purpose}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {index === 0 && (
+                    <span className="text-xs font-bold bg-yellow-400 text-blue-900 px-3 py-1 rounded-full shadow-sm">
+                      NEXT
+                    </span>
+                  )}
+                </div>
+              ))
+            )}
+            {tickets.filter(t => t.status === 'waiting').length > 6 && (
+              <div className="text-center py-4 text-slate-500 italic font-medium">
+                + {tickets.filter(t => t.status === 'waiting').length - 6} more in line
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+    );
+  };
+
+  const renderAdmin = () => (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="bg-white shadow-sm border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row justify-between items-center z-10 gap-4">
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="bg-blue-800 p-2 rounded-lg">
+            <ShieldCheck size={24} className="text-yellow-400" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-slate-800 leading-tight">Admin Console</h1>
+            <p className="text-xs text-slate-500">Gutad National High School</p>
+          </div>
+        </div>
+        
+        {/* Admin Controls */}
+        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+            <div className="flex items-center bg-slate-100 rounded-lg p-1">
+                <Filter size={16} className="text-slate-400 ml-2" />
+                <select 
+                    value={adminFilter} 
+                    onChange={(e) => setAdminFilter(e.target.value)}
+                    className="bg-transparent border-none text-sm font-semibold text-slate-700 focus:ring-0 cursor-pointer"
+                >
+                    <option value="All">All Services</option>
+                    {(appSettings.services || []).map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+            </div>
+           <button 
+             onClick={() => setShowSettingsModal(true)}
+             className="flex items-center gap-2 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 font-medium text-sm transition-colors"
+           >
+             <Settings size={16} /> <span className="hidden sm:inline">Config</span>
+           </button>
+           <button onClick={() => handleNavigation('home')} className="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-slate-100 rounded-lg">
+             <LogOut size={20} />
+           </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+        <div className="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col z-0">
+          <div className="p-6 border-b border-slate-100">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Current Active Ticket</h2>
+            {servingTicket ? (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 text-center mb-6 relative overflow-hidden shadow-sm">
+                <div className="absolute top-2 right-2 px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-bold rounded">{servingTicket.gradeLevel}</div>
+                <div className="text-4xl font-black text-blue-800 font-mono mb-2">{servingTicket.ticketNumber}</div>
+                <div className="font-bold text-slate-900 text-lg mb-1">{servingTicket.studentName}</div>
+                <div className="text-blue-600/80 text-sm font-bold">{servingTicket.purpose}</div>
+                {servingTicket.strand && <div className="text-slate-400 text-xs mt-1">{servingTicket.strand}</div>}
+              </div>
+            ) : (
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center mb-6 text-slate-400">
+                <Clock size={32} className="mx-auto mb-2 opacity-50" />
+                <p>Counter Idle</p>
+              </div>
+            )}
+
+            <button
+              onClick={callNext}
+              disabled={waitingTickets.length === 0 && !servingTicket}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2 text-lg"
+            >
+              <Bell size={20} />
+              {servingTicket && waitingTickets.length > 0 ? 'Finish & Call Next' : servingTicket ? 'Finish Current' : 'Call Next Ticket'}
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6">
+             <div className="grid grid-cols-2 gap-4">
+               <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                 <div className="text-2xl font-bold text-blue-700">{waitingTickets.length}</div>
+                 <div className="text-blue-600/70 text-xs font-semibold uppercase">Waiting</div>
+               </div>
+               <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
+                 <div className="text-2xl font-bold text-yellow-700">{completedTickets.length}</div>
+                 <div className="text-yellow-600/70 text-xs font-semibold uppercase">Done</div>
+               </div>
+             </div>
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col bg-slate-50/50">
+          <div className="p-6 pb-2 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-slate-700">Waiting Queue {adminFilter !== 'All' && <span className="text-blue-600">({adminFilter})</span>}</h2>
+            <span className="text-xs text-slate-400">{waitingTickets.length} student(s)</span>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-6 space-y-3">
+            {waitingTickets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+                <CheckCircle size={48} className="mb-4 opacity-20" />
+                <p>Queue is empty</p>
+              </div>
+            ) : (
+              waitingTickets.map((ticket, idx) => (
+                <div key={ticket.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-blue-300 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-bold">
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-sm">{ticket.ticketNumber}</span>
+                        <span className="font-semibold text-slate-800">{ticket.studentName}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-400 mt-1 flex-wrap">
+                        <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-600 text-xs font-medium">
+                            {ticket.gradeLevel} {ticket.strand ? `• ${ticket.strand}` : ''}
+                        </span>
+                        <span>•</span>
+                        <span className="text-blue-600 font-medium">{ticket.purpose}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => updateStatus(ticket.id, 'cancelled')}
+                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Cancel Ticket"
+                    >
+                      <XCircle size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // If not logged in, show Login Screen
+  if (!user) {
+    return renderLogin();
+  }
+
+  return (
+    <>
+      {/* Views */}
+      {view === 'register' && renderRegister()}
+      {view === 'dashboard' && renderDashboard()}
+      {view === 'admin' && renderAdmin()}
+      {view === 'home' && renderHome()}
+
+      {/* Security PIN Modal */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 pt-8 text-center">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <KeyRound size={32} className="text-slate-500" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Restricted Access</h3>
+              <p className="text-slate-500 text-sm mb-6">Enter staff passcode to continue.</p>
+              
+              <form onSubmit={verifyPin}>
+                <input 
+                  type="password" 
+                  autoFocus
+                  maxLength={4}
+                  value={pinInput}
+                  onChange={(e) => {
+                    setPinInput(e.target.value);
+                    setPinError(false);
+                  }}
+                  className={`w-full text-center text-3xl font-mono tracking-[0.5em] py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${pinError ? 'border-red-300 bg-red-50 focus:ring-red-200 text-red-600' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'}`}
+                  placeholder="••••"
+                />
+                {pinError && <p className="text-red-500 text-sm mt-2 font-medium">Incorrect passcode</p>}
+                
+                <div className="grid grid-cols-2 gap-3 mt-8">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowPinModal(false);
+                      setPinInput('');
+                      setPinError(false);
+                    }}
+                    className="py-3 px-4 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className="py-3 px-4 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                  >
+                    Unlock
+                  </button>
+                </div>
+              </form>
+            </div>
+            {appSettings.adminPin === '1234' && (
+                <div className="bg-slate-50 py-3 text-center text-xs text-slate-400 border-t border-slate-100">
+                Default Demo PIN: <strong>1234</strong>
+                </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && <SettingsModal />}
+    </>
+  );
+}
