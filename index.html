@@ -322,12 +322,24 @@
     <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Config ---
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // Your specific Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAnKm7xNYuxEmg14lYgx1sFlZaTlfYyjw",
+            authDomain: "gnhs-queueing-system.firebaseapp.com",
+            databaseURL: "https://gnhs-queueing-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "gnhs-queueing-system",
+            storageBucket: "gnhs-queueing-system.firebasestorage.app",
+            messagingSenderId: "415667772828",
+            appId: "1:415667772828:web:48f97fe6179029fb797c59",
+            measurementId: "G-1PD1WZMK34"
+        };
+        
+        // Use your project ID as the application identifier for data paths
+        const appId = "gnhs-queueing-system";
         
         const app_firebase = initializeApp(firebaseConfig);
         const auth = getAuth(app_firebase);
@@ -378,11 +390,11 @@
                 btn.innerHTML = '<div class="loader inline-block border-white border-t-transparent"></div> Processing...';
 
                 try {
-                    // 1. Get current count safely (Transaction is better, but doing simplified optimistic update for this demo)
-                    // In a real app with high concurrency, use runTransaction.
+                    // 1. Get current count
                     const newTicketNum = state.settings.lastTicket + 1;
                     
                     // 2. Add to Queue Collection
+                    // Path: /artifacts/gnhs-queueing-system/public/data/queue_items
                     const queueRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'queue_items'));
                     await setDoc(queueRef, {
                         ticketNumber: newTicketNum,
@@ -404,7 +416,7 @@
                     
                 } catch (e) {
                     console.error(e);
-                    app.showToast("Error generating ticket");
+                    app.showToast("Error generating ticket. Check console.");
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = 'Get Ticket';
@@ -460,20 +472,12 @@
                 }
 
                 try {
-                    // If someone is currently serving, mark them completed first?
-                    // Strategy: Just mark the next one as serving. Previous serving becomes completed automatically 
-                    // or explicitly. Let's finish current first if exists.
                     if (state.servingItem) {
                         await app.finishCurrent(); 
-                        // Note: finishCurrent is async, but we can proceed or wait.
-                        // Ideally we wait.
                     }
 
                     const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', nextItem.id);
                     await updateDoc(itemRef, { status: 'serving' });
-                    
-                    // Update global setting for "Current Ticket" for easier monitor sync if needed,
-                    // but Monitor can just listen to queue items status='serving'.
                     
                     app.showToast(`Calling Ticket #${nextItem.ticketNumber}`);
                 } catch (e) {
@@ -495,8 +499,6 @@
 
             recallCurrent: () => {
                 if (!state.servingItem) return;
-                // Just trigger a toast or sound essentially. 
-                // We could update a "recallCount" field in DB to trigger animations on Monitor.
                 app.showToast(`Recalling #${state.servingItem.ticketNumber}...`);
             },
             
@@ -504,8 +506,6 @@
                 if(!confirm("Are you sure? This deletes all waiting tickets.")) return;
                 
                 try {
-                    // Delete all queue docs
-                    // Note: In client SDK batching is limited. For this demo, looping is okay for small sets.
                     const promises = state.queue.map(item => 
                         deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', item.id))
                     );
@@ -533,14 +533,11 @@
         // --- Auth & Initial Load ---
         async function init() {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // Using standard Anonymous Sign-In for your custom project
+                await signInAnonymously(auth);
             } catch (e) {
-                console.error("Auth failed", e);
-                document.getElementById('status-text').innerText = "Auth Error";
+                console.error("Auth failed:", e);
+                document.getElementById('status-text').innerText = "Auth Error (See Console)";
                 document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-red-500";
             }
         }
@@ -551,6 +548,9 @@
                 document.getElementById('status-text').innerText = "Connected";
                 document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]";
                 setupListeners();
+            } else {
+                document.getElementById('status-text').innerText = "Disconnected";
+                document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-red-500";
             }
         });
 
@@ -573,8 +573,7 @@
                 const items = [];
                 snap.forEach(d => items.push({ id: d.id, ...d.data() }));
                 
-                // Sort: Completed/Serving/Waiting logic? 
-                // Actually simple sort by ticket number is best for queue logic
+                // Sort by ticket number
                 items.sort((a, b) => a.ticketNumber - b.ticketNumber);
                 
                 state.queue = items;
@@ -602,7 +601,6 @@
                 monitorCurrent.innerText = `#${String(serving.ticketNumber).padStart(3,'0')}`;
                 monitorName.innerText = serving.name;
                 monitorPurpose.innerText = serving.purpose;
-                // Add a pulse animation if it's new? (Simplified for now)
             } else {
                 monitorCurrent.innerText = "--";
                 monitorName.innerText = "Please Wait";
