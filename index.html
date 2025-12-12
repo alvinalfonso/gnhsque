@@ -294,8 +294,11 @@
                     <!-- Global Controls -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <div class="flex justify-between items-center mb-4">
-                            <h2 class="font-bold text-lg text-slate-800">Counter Controls</h2>
-                            <button onclick="app.toggleSettings()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-gear"></i></button>
+                            <div>
+                                <h2 class="font-bold text-lg text-slate-800">Counter Controls</h2>
+                                <p class="text-xs text-slate-500 font-bold mt-1 bg-green-50 text-green-700 px-2 py-1 rounded inline-block" id="admin-total-served">Total Served: 0</p>
+                            </div>
+                            <button onclick="app.toggleSettings()" class="text-slate-400 hover:text-slate-600 p-2"><i class="fa-solid fa-gear"></i></button>
                         </div>
                         
                         <!-- Settings Panel (Hidden by default) -->
@@ -379,7 +382,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Config ---
         const firebaseConfig = {
@@ -401,7 +404,7 @@
         // --- App State ---
         const state = {
             user: null,
-            settings: { adminPin: "1234", lastTicket: 0, windowCount: 3 },
+            settings: { adminPin: "1234", lastTicket: 0, windowCount: 3, queueDate: "" },
             queue: [],
             currentView: 'home',
             audioEnabled: false
@@ -544,6 +547,28 @@
                 } catch(e) { console.error(e); }
             },
 
+            performDailyReset: async (newDateStr) => {
+                console.log("Performing Daily Reset for: " + newDateStr);
+                try {
+                    // 1. Update Settings First (to prevent others from triggering)
+                    const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config');
+                    await updateDoc(settingsRef, { 
+                        queueDate: newDateStr,
+                        lastTicket: 0 
+                    });
+
+                    // 2. Delete all queue items
+                    // Note: This fetches strictly to delete.
+                    const snapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'queue_items'));
+                    const deletePromises = snapshot.docs.map(d => deleteDoc(d.ref));
+                    await Promise.all(deletePromises);
+                    
+                    app.showToast("System Reset for New Day");
+                } catch (e) {
+                    console.error("Reset Error", e);
+                }
+            },
+
             logoutAdmin: () => app.navigate('home'),
 
             // --- Queue Management ---
@@ -660,6 +685,15 @@
                 const now = new Date();
                 document.getElementById('clock-time').innerText = now.toLocaleTimeString();
                 document.getElementById('clock-date').innerText = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+                
+                // --- DAILY RESET CHECKER (Runs every second) ---
+                // We check if the current local date string matches the stored settings date
+                const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local format
+                if (state.settings.queueDate && state.settings.queueDate !== todayStr) {
+                    // Triggers if the date in settings is different from today
+                    app.performDailyReset(todayStr);
+                }
+
             }, 1000);
         }
 
@@ -677,12 +711,24 @@
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), (snap) => {
                 if (snap.exists()) {
                     state.settings = { ...state.settings, ...snap.data() };
+                    
+                    // Initial Reset Check on Load
+                    const todayStr = new Date().toLocaleDateString('en-CA');
+                    if (state.settings.queueDate && state.settings.queueDate !== todayStr) {
+                         app.performDailyReset(todayStr);
+                    } else if (!state.settings.queueDate) {
+                        // If no date exists (first run), set it.
+                        updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { queueDate: todayStr });
+                    }
+
                     updateUI();
                 } else {
+                    const todayStr = new Date().toLocaleDateString('en-CA');
                     setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), {
                         adminPin: "1234",
                         lastTicket: 0,
-                        windowCount: 3
+                        windowCount: 3,
+                        queueDate: todayStr
                     });
                 }
             });
@@ -702,6 +748,7 @@
             const waiting = state.queue.filter(i => i.status === 'waiting');
             const serving = state.queue.filter(i => i.status === 'serving');
             const removed = state.queue.filter(i => i.status === 'removed');
+            const completed = state.queue.filter(i => i.status === 'completed');
 
             // --- AUDIO LOGIC ---
             // If ANY serving ticket has alarmPlaying: true, play the loop
@@ -710,6 +757,10 @@
 
 
             // --- Admin Dashboard Rendering ---
+            
+            // UPDATE TOTAL SERVED COUNT
+            document.getElementById('admin-total-served').innerText = `Total Served: ${completed.length}`;
+
             const adminCounters = document.getElementById('admin-counters-list');
             adminCounters.innerHTML = '';
             
