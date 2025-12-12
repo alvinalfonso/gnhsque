@@ -26,12 +26,17 @@
 
         /* Animations */
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
         .serving-card-animation {
-            animation: pulse-ring 2s infinite;
+            animation: pulse-ring 1.5s infinite;
+        }
+        /* Blue pulse for silent serving state */
+        .serving-card-silent {
+            border-color: #3b82f6;
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
         }
 
         @keyframes slideIn {
@@ -131,8 +136,8 @@
                         <div id="kiosk-form-container">
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">Full Name</label>
-                                    <input type="text" id="student-name" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Enter your name" autocomplete="off">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">Nickname</label>
+                                    <input type="text" id="student-name" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Enter your nickname" autocomplete="off">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-bold text-slate-700 mb-1">Student ID (Optional)</label>
@@ -162,7 +167,7 @@
                             </div>
                             <div>
                                 <h3 class="text-2xl font-bold text-slate-800 mb-1">You're in line,</h3>
-                                <div class="text-3xl font-black text-blue-600 break-words px-4" id="ticket-name-display">Student Name</div>
+                                <div class="text-4xl font-black text-blue-600 break-words px-4" id="ticket-name-display">Nickname</div>
                                 <p class="text-slate-500 mt-2">Please wait for your name to be called</p>
                             </div>
                             <div class="bg-white border-2 border-slate-800 p-6 rounded-2xl shadow-[4px_4px_0px_0px_rgba(30,41,59,1)]">
@@ -222,19 +227,36 @@
                         </div>
                     </div>
 
-                    <!-- Right: Up Next Queue -->
-                    <div class="col-span-12 lg:col-span-4 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="bg-slate-50 p-4 border-b border-slate-200">
-                            <h3 class="font-bold text-slate-700 flex items-center gap-2">
-                                <i class="fa-solid fa-list text-blue-500"></i> Next in Queue
-                            </h3>
+                    <!-- Right: Queue & Missed Lists -->
+                    <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 overflow-hidden h-full">
+                        
+                        <!-- Next in Queue -->
+                        <div class="flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex-1">
+                            <div class="bg-slate-50 p-4 border-b border-slate-200">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                                    <i class="fa-solid fa-list text-blue-500"></i> Next in Queue
+                                </h3>
+                            </div>
+                            <div class="flex-grow overflow-y-auto p-2" id="monitor-list">
+                                <!-- Next items injected here -->
+                            </div>
+                            <div class="p-2 bg-slate-50 border-t border-slate-200 text-center text-xs text-slate-400">
+                                Total Waiting: <span id="monitor-total-waiting" class="font-bold text-slate-700">0</span>
+                            </div>
                         </div>
-                        <div class="flex-grow overflow-y-auto p-2" id="monitor-list">
-                            <!-- Next items injected here -->
+
+                        <!-- Missed / Removed -->
+                        <div class="flex flex-col bg-red-50 rounded-3xl shadow-sm border border-red-100 overflow-hidden h-1/3">
+                            <div class="bg-red-100 p-3 border-b border-red-200">
+                                <h3 class="font-bold text-red-700 flex items-center gap-2 text-sm">
+                                    <i class="fa-solid fa-user-xmark"></i> Missed / No Show
+                                </h3>
+                            </div>
+                            <div class="flex-grow overflow-y-auto p-2" id="monitor-removed-list">
+                                <!-- Removed items injected here -->
+                            </div>
                         </div>
-                        <div class="p-4 bg-slate-50 border-t border-slate-200 text-center text-xs text-slate-400">
-                            Total Waiting: <span id="monitor-total-waiting" class="font-bold text-slate-700">0</span>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -318,9 +340,9 @@
                         <table class="w-full text-left text-sm">
                             <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
                                 <tr>
-                                    <th class="p-3 font-semibold">Name</th>
+                                    <th class="p-3 font-semibold">Nickname</th>
                                     <th class="p-3 font-semibold">Purpose</th>
-                                    <th class="p-3 font-semibold w-16 text-right">#</th>
+                                    <th class="p-3 font-semibold w-12 text-center">Skips</th>
                                     <th class="p-3 font-semibold text-right">Action</th>
                                 </tr>
                             </thead>
@@ -420,7 +442,7 @@
                 const purpose = document.getElementById('student-purpose').value;
                 const studentId = document.getElementById('student-id').value.trim();
 
-                if (!name) { app.showToast("Please enter your name"); return; }
+                if (!name) { app.showToast("Please enter your nickname"); return; }
 
                 const btn = document.getElementById('btn-get-ticket');
                 btn.disabled = true;
@@ -432,10 +454,12 @@
                     
                     await setDoc(queueRef, {
                         ticketNumber: newTicketNum,
-                        name: name,
+                        name: name, // Using nickname
                         studentId: studentId,
                         purpose: purpose,
                         status: 'waiting',
+                        skipCount: 0,
+                        alarmPlaying: false,
                         timestamp: serverTimestamp()
                     });
 
@@ -491,7 +515,6 @@
                 let newCount = state.settings.windowCount + delta;
                 if (newCount < 1) newCount = 1;
                 if (newCount > 10) newCount = 10;
-                
                 try {
                     const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config');
                     await updateDoc(settingsRef, { windowCount: newCount });
@@ -528,30 +551,66 @@
                 const nextItem = state.queue.find(item => item.status === 'waiting');
                 if (!nextItem) { app.showToast("Queue is empty"); return; }
                 
-                // If this window was already serving someone, finish them first?
-                // Optional logic: strict finish before call. Current logic allows override.
-                
                 try {
                     const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', nextItem.id);
                     await updateDoc(itemRef, { 
                         status: 'serving',
                         window: windowNum,
-                        calledAt: serverTimestamp()
+                        calledAt: serverTimestamp(),
+                        alarmPlaying: true // Start the continuous alarm
                     });
-                    // Play sound globally? Handled by snapshot listener in monitor
+                } catch(e) { console.error(e); }
+            },
+
+            stopAlarm: async (ticketId) => {
+                try {
+                    const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', ticketId);
+                    await updateDoc(itemRef, { alarmPlaying: false });
+                    app.showToast("Alarm Stopped");
                 } catch(e) { console.error(e); }
             },
 
             finishForWindow: async (ticketId) => {
                 try {
                     const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', ticketId);
-                    await updateDoc(itemRef, { status: 'completed' });
+                    await updateDoc(itemRef, { 
+                        status: 'completed',
+                        alarmPlaying: false // Ensure alarm stops
+                    });
                     app.showToast("Ticket Completed");
                 } catch(e) { console.error(e); }
             },
 
+            skipTicket: async (ticketId) => {
+                const item = state.queue.find(i => i.id === ticketId);
+                if (!item) return;
+
+                const newSkipCount = (item.skipCount || 0) + 1;
+                const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', ticketId);
+
+                try {
+                    if (newSkipCount >= 3) {
+                        // 3rd strike: Remove from queue
+                        await updateDoc(itemRef, { 
+                            status: 'removed',
+                            skipCount: newSkipCount,
+                            alarmPlaying: false
+                        });
+                        app.showToast("Ticket Removed (3 Skips)");
+                    } else {
+                        // Return to waiting (priority is kept by ticket number sort)
+                        await updateDoc(itemRef, { 
+                            status: 'waiting',
+                            skipCount: newSkipCount,
+                            alarmPlaying: false
+                        });
+                        app.showToast(`Ticket Skipped (${newSkipCount}/3)`);
+                    }
+                } catch(e) { console.error(e); }
+            },
+
             removeTicket: async (id) => {
-                if(!confirm("Delete ticket?")) return;
+                if(!confirm("Permanently delete ticket?")) return;
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id));
                 } catch(e) { console.error(e); }
@@ -569,11 +628,17 @@
                 }).catch(e => app.showToast("Could not enable audio"));
             },
 
-            playBell: () => {
-                if(state.audioEnabled) {
-                    const audio = document.getElementById('bell-sound');
+            manageAudioLoop: (shouldPlay) => {
+                const audio = document.getElementById('bell-sound');
+                if (shouldPlay && state.audioEnabled) {
+                    if (audio.paused) {
+                        audio.loop = true; // Enable loop
+                        audio.play().catch(e => console.log(e));
+                    }
+                } else {
+                    audio.pause();
                     audio.currentTime = 0;
-                    audio.play().catch(e => console.log(e));
+                    audio.loop = false;
                 }
             },
 
@@ -611,9 +676,7 @@
             // Settings Listener
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), (snap) => {
                 if (snap.exists()) {
-                    const data = snap.data();
-                    state.settings = { ...state.settings, ...data };
-                    // Re-render interfaces that depend on window count
+                    state.settings = { ...state.settings, ...snap.data() };
                     updateUI();
                 } else {
                     setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), {
@@ -630,14 +693,6 @@
                 snap.forEach(d => items.push({ id: d.id, ...d.data() }));
                 items.sort((a, b) => a.ticketNumber - b.ticketNumber);
                 
-                // Detect new call for sound
-                const serving = items.filter(i => i.status === 'serving');
-                const prevServing = state.queue.filter(i => i.status === 'serving');
-                
-                if (serving.length > prevServing.length) {
-                    app.playBell();
-                }
-
                 state.queue = items;
                 updateUI();
             });
@@ -646,6 +701,13 @@
         function updateUI() {
             const waiting = state.queue.filter(i => i.status === 'waiting');
             const serving = state.queue.filter(i => i.status === 'serving');
+            const removed = state.queue.filter(i => i.status === 'removed');
+
+            // --- AUDIO LOGIC ---
+            // If ANY serving ticket has alarmPlaying: true, play the loop
+            const isAlarmActive = serving.some(i => i.alarmPlaying === true);
+            app.manageAudioLoop(isAlarmActive);
+
 
             // --- Admin Dashboard Rendering ---
             const adminCounters = document.getElementById('admin-counters-list');
@@ -656,19 +718,33 @@
                 
                 let cardHtml = '';
                 if (currentTicket) {
+                    const isAlarming = currentTicket.alarmPlaying;
+                    const alarmBtnClass = isAlarming 
+                        ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" 
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed";
+                    
                     cardHtml = `
-                        <div class="flex justify-between items-center bg-blue-50 border border-blue-200 p-4 rounded-xl">
-                            <div class="overflow-hidden mr-2">
-                                <div class="text-xs font-bold text-blue-500 uppercase">Window ${i}</div>
-                                <div class="text-xl font-black text-slate-800 truncate" title="${currentTicket.name}">${currentTicket.name}</div>
-                                <div class="text-xs text-slate-500">#${String(currentTicket.ticketNumber).padStart(3,'0')} - ${currentTicket.purpose}</div>
+                        <div class="flex flex-col gap-2 bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                            <div class="flex justify-between items-start">
+                                <div class="overflow-hidden mr-2">
+                                    <div class="text-xs font-bold text-blue-500 uppercase">Window ${i}</div>
+                                    <div class="text-xl font-black text-slate-800 truncate" title="${currentTicket.name}">${currentTicket.name}</div>
+                                    <div class="text-xs text-slate-500">#${String(currentTicket.ticketNumber).padStart(3,'0')} - ${currentTicket.purpose}</div>
+                                    ${currentTicket.skipCount > 0 ? `<div class="text-xs font-bold text-orange-500 mt-1"><i class="fa-solid fa-rotate-right"></i> Skipped ${currentTicket.skipCount}/3</div>` : ''}
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <button onclick="app.finishForWindow('${currentTicket.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm w-20">
+                                        Finish
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex gap-2 flex-shrink-0">
-                                <button onclick="app.callNextForWindow(${i})" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" title="Recall/Next">
-                                    <i class="fa-solid fa-rotate"></i>
+                            
+                            <div class="flex gap-2 pt-2 border-t border-blue-100 mt-2">
+                                <button onclick="app.stopAlarm('${currentTicket.id}')" class="flex-1 ${alarmBtnClass} py-2 rounded-lg text-xs font-bold transition-all" ${!isAlarming ? 'disabled' : ''}>
+                                    <i class="fa-solid fa-volume-xmark"></i> Stop Alarm
                                 </button>
-                                <button onclick="app.finishForWindow('${currentTicket.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">
-                                    Finish
+                                <button onclick="app.skipTicket('${currentTicket.id}')" class="flex-1 bg-white border border-slate-200 hover:bg-orange-50 text-slate-600 hover:text-orange-600 py-2 rounded-lg text-xs font-bold shadow-sm transition-colors">
+                                    <i class="fa-solid fa-forward"></i> Skip
                                 </button>
                             </div>
                         </div>
@@ -703,7 +779,7 @@
                         <tr class="hover:bg-slate-50 group">
                             <td class="p-3 text-slate-700 font-bold text-base">${item.name}</td>
                             <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold uppercase">${item.purpose}</span></td>
-                            <td class="p-3 font-mono font-bold text-slate-400 text-xs text-right">#${String(item.ticketNumber).padStart(3,'0')}</td>
+                            <td class="p-3 text-center text-xs font-bold ${item.skipCount > 0 ? 'text-orange-500' : 'text-slate-300'}">${item.skipCount || 0}/3</td>
                             <td class="p-3 text-right">
                                 <button onclick="app.removeTicket('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash"></i></button>
                             </td>
@@ -722,8 +798,13 @@
             for (let i = 1; i <= wCount; i++) {
                 const ticket = serving.find(t => t.window === i);
                 if (ticket) {
+                    // Check if alarming
+                    const isAlarming = ticket.alarmPlaying;
+                    const cardClass = isAlarming ? 'border-red-500 serving-card-animation' : 'border-blue-500 serving-card-silent';
+                    const bgClass = isAlarming ? 'bg-red-50' : 'bg-white';
+                    
                     monitorGrid.insertAdjacentHTML('beforeend', `
-                        <div class="bg-white rounded-3xl shadow-lg border-l-8 border-blue-500 p-6 relative overflow-hidden serving-card-animation flex flex-col justify-between min-h-[160px]">
+                        <div class="${bgClass} rounded-3xl shadow-lg border-l-8 ${cardClass} p-6 relative overflow-hidden flex flex-col justify-between min-h-[160px] transition-colors duration-300">
                             <div class="absolute top-0 right-0 p-4 opacity-5"><i class="fa-solid fa-users text-8xl"></i></div>
                             <div class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Window ${i}</div>
                             
@@ -731,9 +812,9 @@
                                 <div class="text-3xl md:text-4xl font-black text-slate-800 leading-tight break-words line-clamp-2 w-full">${ticket.name}</div>
                             </div>
                             
-                            <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
+                            <div class="border-t border-slate-200/50 pt-3 flex justify-between items-center">
                                 <div class="text-sm font-bold text-blue-600 uppercase tracking-wider">${ticket.purpose}</div>
-                                <div class="text-xs font-mono text-slate-300">#${String(ticket.ticketNumber).padStart(3,'0')}</div>
+                                <div class="text-xs font-mono text-slate-400">#${String(ticket.ticketNumber).padStart(3,'0')}</div>
                             </div>
                         </div>
                     `);
@@ -749,7 +830,7 @@
                 }
             }
 
-            // Monitor Queue List
+            // Monitor Queue List (Next)
             const monitorList = document.getElementById('monitor-list');
             monitorList.innerHTML = '';
             document.getElementById('monitor-total-waiting').innerText = waiting.length;
@@ -761,9 +842,24 @@
                             <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 flex-shrink-0">
                                 <i class="fa-solid fa-user text-xs"></i>
                             </div>
-                            <div class="font-bold text-lg text-slate-700 truncate">${item.name}</div>
+                            <div class="font-bold text-lg text-slate-700 truncate">
+                                ${item.name} 
+                                ${item.skipCount > 0 ? `<span class="text-xs text-orange-500 ml-1 font-normal"><i class="fa-solid fa-rotate-right"></i></span>` : ''}
+                            </div>
                         </div>
                         <div class="text-xs font-bold text-slate-400 uppercase flex-shrink-0 ml-2">${item.purpose}</div>
+                    </div>
+                `);
+            });
+
+            // Monitor Removed List
+            const monitorRemoved = document.getElementById('monitor-removed-list');
+            monitorRemoved.innerHTML = '';
+            removed.slice(0, 5).forEach(item => {
+                monitorRemoved.insertAdjacentHTML('beforeend', `
+                    <div class="flex items-center justify-between p-2 border-b border-red-100 last:border-0 bg-red-50/50">
+                        <span class="text-sm font-semibold text-red-600 truncate opacity-70">${item.name}</span>
+                        <span class="text-xs text-red-400">No Show</span>
                     </div>
                 `);
             });
