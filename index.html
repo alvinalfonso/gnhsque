@@ -109,7 +109,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-base leading-tight text-white group-hover:text-accent-300 transition-colors">Pampanga Medical Specialist Hospital</h1>
-                    <p class="text-[10px] text-medical-100 uppercase tracking-wider">Triage System</p>
+                    <p class="text-[10px] text-medical-100 uppercase tracking-wider">Queueing System</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
@@ -160,7 +160,7 @@
                         <div class="bg-slate-100 w-12 h-12 rounded-xl flex items-center justify-center text-slate-500 mb-4 group-hover:scale-110 group-hover:bg-slate-200 group-hover:text-slate-700 transition-all">
                             <i class="fa-solid fa-lock text-xl"></i>
                         </div>
-                        <h2 class="text-2xl font-bold mb-1 text-slate-800 group-hover:text-slate-900 transition-colors">Staff Access</h2>
+                        <h2 class="text-2xl font-bold mb-1 text-slate-800 group-hover:text-slate-900 transition-colors">Admin Console</h2>
                         <p class="text-slate-500 text-sm group-hover:text-slate-600">Counter controls & settings</p>
                     </button>
                 </div>
@@ -179,8 +179,12 @@
                         <div id="kiosk-form-container">
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Visitor Name</label>
-                                    <input type="text" id="patient-name" class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 focus:border-medical-500 outline-none transition-all placeholder-slate-400" placeholder="Full Name" autocomplete="off">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Visitor Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="patient-name" class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 focus:border-medical-500 outline-none transition-all placeholder-slate-400" placeholder="Required" autocomplete="off">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Patient Name (Optional)</label>
+                                    <input type="text" id="patient-actual-name" class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 focus:border-medical-500 outline-none transition-all placeholder-slate-400" placeholder="If different from visitor" autocomplete="off">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ID / Case No. (Optional)</label>
@@ -226,7 +230,8 @@
                             <div>
                                 <h3 class="text-xl font-bold text-slate-800 mb-1">Ticket Generated</h3>
                                 <div class="text-3xl font-black text-medical-600 break-words px-4" id="ticket-name-display">Name</div>
-                                <div class="text-sm text-slate-500 mt-1" id="ticket-purpose-display">Purpose</div>
+                                <div class="text-sm text-slate-500 mt-1" id="ticket-patient-display"></div>
+                                <div class="text-sm font-bold text-slate-700 mt-1" id="ticket-purpose-display">Purpose</div>
                             </div>
                             <div class="bg-white text-black p-4 rounded-xl border-t-4 border-medical-500 relative mx-4 shadow-xl border-x border-b border-slate-100">
                                 <div class="flex justify-between items-center border-b-2 border-dashed border-slate-300 pb-3 mb-3">
@@ -274,7 +279,7 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="text-4xl font-mono font-bold text-medical-600 leading-none" id="clock-time">00:00</div>
+                        <div class="text-4xl font-mono font-bold text-medical-600 leading-none" id="clock-time">00:00:00</div>
                         <div class="text-slate-500 font-medium text-xs uppercase tracking-wide mt-1" id="clock-date">Jan 01, 2024</div>
                     </div>
                 </div>
@@ -316,7 +321,7 @@
                 </div>
 
                 <!-- Footer: Announcements -->
-                <div class="flex-none h-56 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-slate-200 z-10 bg-slate-50">
+                <div class="flex-none h-72 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-slate-200 z-10 bg-slate-50">
                     <!-- Billing -->
                     <div class="bg-white rounded-xl border-l-4 border-green-500 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
                         <h4 class="text-[10px] font-bold text-green-600 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-file-invoice-dollar"></i> Billing / Cashier</h4>
@@ -400,7 +405,7 @@
 
                             <!-- Window Purposes Config -->
                             <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                                <label class="text-sm text-slate-600 block mb-2">Counter Assignments</label>
+                                <label class="text-sm text-slate-600 block mb-2">Counter Assignments & Naming</label>
                                 <div id="window-config-list" class="space-y-2">
                                     <!-- Injected by JS -->
                                 </div>
@@ -434,7 +439,7 @@
                         </div>
 
                         <!-- Announcement Area (Bottom) -->
-                        <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-md flex-none h-48">
+                        <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-md flex-none h-64">
                             <div class="flex justify-between items-center mb-2">
                                 <h3 class="font-bold text-slate-600 text-xs flex items-center gap-2"><i class="fa-solid fa-bullhorn text-medical-600"></i> Announcements</h3>
                             </div>
@@ -531,7 +536,8 @@
                 lastTicket: 0, 
                 windowCount: 4, 
                 queueDate: "",
-                windowConfigs: { 1: ['All'], 2: ['All'], 3: ['All'], 4: ['All'] } 
+                windowConfigs: { 1: ['All'], 2: ['All'], 3: ['All'], 4: ['All'] },
+                windowNames: { 1: "Station 1", 2: "Station 2", 3: "Station 3", 4: "Station 4" }
             },
             queue: [],
             announcements: [],
@@ -629,6 +635,7 @@
 
             getTicket: async () => {
                 const name = document.getElementById('patient-name').value.trim();
+                const actualName = document.getElementById('patient-actual-name').value.trim();
                 let purpose = document.getElementById('selected-purpose').value;
                 let subPurpose = document.getElementById('selected-sub-purpose').value;
                 const pId = document.getElementById('patient-id').value.trim();
@@ -661,7 +668,8 @@
                     
                     await setDoc(queueRef, {
                         ticketNumber: newTicketNum, 
-                        name: name, 
+                        name: name,
+                        patientName: actualName, 
                         studentId: pId,
                         purpose: purpose, 
                         subPurpose: subPurpose, 
@@ -675,6 +683,7 @@
                     await updateDoc(settingsRef, { lastTicket: newTicketNum });
 
                     document.getElementById('ticket-name-display').textContent = name;
+                    document.getElementById('ticket-patient-display').textContent = actualName ? `Patient: ${actualName}` : '';
                     let displayPurpose = purpose;
                     if(subPurpose) displayPurpose += ` - ${subPurpose}`;
                     document.getElementById('ticket-purpose-display').textContent = displayPurpose;
@@ -691,6 +700,7 @@
 
             resetKiosk: () => {
                 document.getElementById('patient-name').value = '';
+                document.getElementById('patient-actual-name').value = '';
                 document.getElementById('patient-id').value = '';
                 document.getElementById('other-reason-input').value = '';
                 document.getElementById('selected-sub-purpose').value = '';
@@ -744,6 +754,13 @@
                 newConfigs[winId] = [val]; 
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { windowConfigs: newConfigs });
                 app.showToast(`Window ${winId} set to ${val}`);
+            },
+
+            saveWindowName: async (winId, name) => {
+                const newNames = { ...state.settings.windowNames };
+                newNames[winId] = name;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { windowNames: newNames });
+                app.showToast(`Station ${winId} renamed`);
             },
 
             resetQueue: async () => {
@@ -838,15 +855,20 @@
             container.innerHTML = '';
             for(let i=1; i<=state.settings.windowCount; i++) {
                 const current = state.settings.windowConfigs?.[i]?.[0] || 'All';
+                const currentName = state.settings.windowNames?.[i] || `Station ${i}`;
+                
                 let options = `<option value="All">All Services</option>`;
                 state.purposes.forEach(p => {
                     if(p !== 'Others') options += `<option value="${p}" ${current === p ? 'selected' : ''}>${p}</option>`;
                 });
 
                 container.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center justify-between text-xs text-slate-500">
-                        <span>Window ${i}</span>
-                        <select onchange="app.saveWindowConfig(${i}, this)" class="bg-white border border-slate-300 rounded p-1 text-slate-700">
+                    <div class="flex items-center justify-between text-xs text-slate-500 bg-slate-50 p-2 rounded mb-1">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-bold text-[10px] uppercase">Station ID: ${i}</span>
+                            <input type="text" class="bg-white border border-slate-300 rounded px-1 py-0.5 w-24 text-slate-700" value="${currentName}" onchange="app.saveWindowName(${i}, this.value)" placeholder="Name">
+                        </div>
+                        <select onchange="app.saveWindowConfig(${i}, this)" class="bg-white border border-slate-300 rounded p-1 text-slate-700 h-8">
                             ${options}
                         </select>
                     </div>
@@ -870,6 +892,7 @@
             for(let i=1; i<=state.settings.windowCount; i++) {
                 const ticket = serving.find(t => t.window === i);
                 const role = state.settings.windowConfigs?.[i]?.[0] || 'All';
+                const winName = state.settings.windowNames?.[i] || `Station ${i}`;
                 
                 if (ticket) {
                     const isAlarm = ticket.alarmPlaying;
@@ -880,7 +903,7 @@
                         <div class="bg-white border border-medical-500 p-3 rounded-xl shadow-sm">
                             <div class="flex justify-between items-start mb-2">
                                 <div>
-                                    <div class="text-[10px] font-bold text-medical-600 uppercase">Station ${i} (${role})</div>
+                                    <div class="text-[10px] font-bold text-medical-600 uppercase">${winName} (${role})</div>
                                     <div class="text-lg font-black text-slate-800 truncate w-32">${ticket.name}</div>
                                     <div class="text-[10px] text-slate-500">#${String(ticket.ticketNumber).padStart(3,'0')} • ${displayPurpose}</div>
                                 </div>
@@ -893,7 +916,7 @@
                     adminCounters.insertAdjacentHTML('beforeend', `
                         <div class="bg-white border border-slate-200 p-3 rounded-xl flex flex-col justify-between shadow-sm">
                             <div class="mb-2">
-                                <div class="text-[10px] font-bold text-slate-500 uppercase">Station ${i} (${role})</div>
+                                <div class="text-[10px] font-bold text-slate-500 uppercase">${winName} (${role})</div>
                                 <div class="text-xs text-slate-600">Available</div>
                             </div>
                             <button onclick="app.callNextForWindow(${i})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-full py-1.5 rounded text-xs font-bold flex items-center justify-center gap-2">Call Next <i class="fa-solid fa-bullhorn"></i></button>
@@ -912,10 +935,12 @@
                 waiting.forEach(item => {
                     let displayPurpose = item.purpose;
                     if(item.subPurpose) displayPurpose += ` <span class="text-slate-400 text-[10px]">(${item.subPurpose})</span>`;
+                    let displayName = item.name;
+                    if(item.patientName) displayName += `<br><span class="text-[10px] text-slate-400">Pt: ${item.patientName}</span>`;
 
                     adminList.insertAdjacentHTML('beforeend', `
                         <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0">
-                            <td class="p-3 font-medium text-slate-800">${item.name}</td>
+                            <td class="p-3 font-medium text-slate-800 leading-tight">${displayName}</td>
                             <td class="p-3"><span class="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">${displayPurpose}</span></td>
                             <td class="p-3 text-right"><button onclick="app.removeTicket('${item.id}')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
@@ -939,25 +964,29 @@
 
             for(let i=1; i<=wCount; i++) {
                 const ticket = serving.find(t => t.window === i);
+                const winName = state.settings.windowNames?.[i] || `Station ${i}`;
+                
                 if (ticket) {
                     const isAlarm = ticket.alarmPlaying;
                     let purposeText = ticket.purpose;
                     if(ticket.subPurpose) purposeText = ticket.subPurpose; 
                     
+                    const bgClass = isAlarm ? 'bg-accent-50' : 'bg-medical-50';
+
                     monitorGrid.insertAdjacentHTML('beforeend', `
-                        <div class="${isAlarm ? 'bg-white border-accent-500 serving-card-animation' : 'bg-white border-medical-600 serving-card-silent'} border-l-4 rounded-xl p-4 relative overflow-hidden flex flex-col justify-between transition-all shadow-md ${itemHeightClass}">
-                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Station ${i}</div>
+                        <div class="${isAlarm ? `${bgClass} border-accent-500 serving-card-animation` : `${bgClass} border-medical-600 serving-card-silent`} border-l-4 rounded-xl p-4 relative overflow-hidden flex flex-col justify-between transition-all shadow-md ${itemHeightClass}">
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">${winName}</div>
                             <div class="text-3xl md:text-4xl font-black text-slate-800 leading-tight line-clamp-1">${ticket.name}</div>
-                            <div class="flex justify-between items-end border-t border-slate-100 pt-2">
+                            <div class="flex justify-between items-end border-t border-slate-200/50 pt-2">
                                 <div class="text-xs font-bold text-medical-600 uppercase truncate max-w-[70%]">${purposeText}</div>
-                                <div class="text-xl font-mono text-slate-300">#${String(ticket.ticketNumber).padStart(3,'0')}</div>
+                                <div class="text-xl font-mono text-slate-400">#${String(ticket.ticketNumber).padStart(3,'0')}</div>
                             </div>
                         </div>
                     `);
                 } else {
                     monitorGrid.insertAdjacentHTML('beforeend', `
                         <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between opacity-50 shadow-sm ${itemHeightClass}">
-                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Station ${i}</div>
+                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">${winName}</div>
                             <div class="text-2xl font-bold text-slate-300 text-center">Available</div>
                             <div class="h-4"></div>
                         </div>
@@ -1052,7 +1081,7 @@
             
             setInterval(() => {
                 const now = new Date();
-                document.getElementById('clock-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                document.getElementById('clock-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second: '2-digit'});
                 document.getElementById('clock-date').innerText = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
                 
                 const today = new Date().toLocaleDateString('en-CA');
