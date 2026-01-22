@@ -127,7 +127,7 @@
                         <div class="bg-zinc-800 w-12 h-12 rounded-xl flex items-center justify-center text-medical-500 mb-4 group-hover:scale-110 group-hover:bg-medical-900/30 transition-all">
                             <i class="fa-solid fa-user-plus text-xl"></i>
                         </div>
-                        <h2 class="text-2xl font-bold mb-1 text-zinc-100 group-hover:text-medical-400 transition-colors">Patient Kiosk</h2>
+                        <h2 class="text-2xl font-bold mb-1 text-zinc-100 group-hover:text-medical-400 transition-colors">Visitor Kiosk</h2>
                         <p class="text-zinc-500 text-sm group-hover:text-zinc-400">Get a queue number</p>
                     </button>
 
@@ -160,37 +160,43 @@
 
         <!-- VIEW: Kiosk -->
         <div id="view-kiosk" class="view-section">
-            <div class="max-w-md mx-auto my-8 px-4">
+            <div class="max-w-md mx-auto my-6 px-4">
                 <div class="bg-zinc-900 rounded-2xl shadow-xl border border-zinc-800 overflow-hidden">
                     <div class="bg-gradient-to-r from-medical-800 to-medical-900 p-6 text-white text-center relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                        <h2 class="text-2xl font-bold relative z-10"><i class="fa-solid fa-hospital-user mr-2"></i>Patient Check-in</h2>
+                        <h2 class="text-2xl font-bold relative z-10"><i class="fa-solid fa-user-tag mr-2"></i>Visitor Check-in</h2>
                     </div>
                     <div class="p-6 space-y-4">
                         <div id="kiosk-form-container">
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Patient Name</label>
+                                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Visitor Name</label>
                                     <input type="text" id="patient-name" class="w-full p-3 bg-zinc-950 border border-zinc-700 text-white rounded-lg focus:ring-1 focus:ring-medical-500 focus:border-medical-500 outline-none transition-all placeholder-zinc-600" placeholder="Full Name" autocomplete="off">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">ID / Case No. (Optional)</label>
                                     <input type="text" id="patient-id" class="w-full p-3 bg-zinc-950 border border-zinc-700 text-white rounded-lg focus:ring-1 focus:ring-medical-500 outline-none transition-all placeholder-zinc-600" placeholder="e.g. OP-2024-001">
                                 </div>
+                                
+                                <!-- Main Purpose -->
                                 <div>
-                                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Purpose of Visit</label>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button type="button" class="purpose-btn p-3 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 hover:border-medical-500/50 text-zinc-300 text-sm font-medium transition-all text-center active-purpose" data-value="Check-up" onclick="app.selectPurpose(this)">Check-up</button>
-                                        <button type="button" class="purpose-btn p-3 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 hover:border-medical-500/50 text-zinc-300 text-sm font-medium transition-all text-center" data-value="Billing" onclick="app.selectPurpose(this)">Billing</button>
-                                        <button type="button" class="purpose-btn p-3 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 hover:border-medical-500/50 text-zinc-300 text-sm font-medium transition-all text-center" data-value="Laboratory" onclick="app.selectPurpose(this)">Laboratory</button>
-                                        <button type="button" class="purpose-btn p-3 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 hover:border-medical-500/50 text-zinc-300 text-sm font-medium transition-all text-center" data-value="Pharmacy" onclick="app.selectPurpose(this)">Pharmacy</button>
-                                        <button type="button" class="purpose-btn p-3 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 hover:border-medical-500/50 text-zinc-300 text-sm font-medium transition-all text-center" data-value="Emergency" onclick="app.selectPurpose(this)">Emergency</button>
-                                        <button type="button" class="purpose-btn p-3 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 hover:border-medical-500/50 text-zinc-300 text-sm font-medium transition-all text-center" data-value="Others" onclick="app.selectPurpose(this)">Others</button>
+                                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Primary Purpose</label>
+                                    <div class="grid grid-cols-2 gap-2" id="main-purpose-list">
+                                        <!-- Injected by JS -->
                                     </div>
                                     <input type="hidden" id="selected-purpose" value="Check-up">
                                 </div>
+
+                                <!-- Sub Purpose Area (Dynamic) -->
+                                <div id="sub-purpose-section" class="hidden animate-slide-in">
+                                    <label class="block text-xs font-bold text-medical-400 uppercase mb-2">Specific Service</label>
+                                    <div class="grid grid-cols-2 gap-2 bg-zinc-950/50 p-2 rounded-lg border border-zinc-800" id="sub-purpose-list">
+                                        <!-- Injected by JS -->
+                                    </div>
+                                    <input type="hidden" id="selected-sub-purpose" value="">
+                                </div>
                                 
-                                <!-- Hidden input for "Others" -->
+                                <!-- Custom Reason Input for 'Others' -->
                                 <div id="other-reason-container" class="hidden animate-slide-in">
                                     <label class="block text-xs font-bold text-medical-400 uppercase mb-1">Please specify reason</label>
                                     <input type="text" id="other-reason-input" class="w-full p-3 bg-zinc-800 border border-zinc-600 text-white rounded-lg focus:ring-1 focus:ring-medical-500 outline-none" placeholder="e.g. Medical Certificate">
@@ -233,7 +239,7 @@
                                 <div class="absolute top-1/2 -right-2 w-4 h-4 bg-zinc-900 rounded-full"></div>
                             </div>
                             <button onclick="app.resetKiosk()" class="text-medical-400 hover:text-medical-300 font-bold py-2 px-4 rounded-lg hover:bg-zinc-800 transition-colors text-sm">
-                                Check-in Another Patient
+                                Check-in Another Visitor
                             </button>
                         </div>
                     </div>
@@ -247,10 +253,10 @@
         <!-- VIEW: Live Monitor (Non-scrollable) -->
         <div id="view-monitor" class="view-section">
             <!-- Full Height Container -->
-            <div class="h-full flex flex-col relative px-6 pb-6">
+            <div class="h-full flex flex-col relative px-6 pb-2"> <!-- Reduced padding bottom to move footer down but fit -->
                 
                 <!-- Monitor Header -->
-                <div class="flex-none flex justify-between items-center mb-4 py-2 border-b border-zinc-800">
+                <div class="flex-none flex justify-between items-center mb-2 py-2 border-b border-zinc-800">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-hospital text-3xl text-medical-500"></i>
                         <div>
@@ -265,19 +271,19 @@
                 </div>
 
                 <!-- Main Content Grid -->
-                <div class="flex-grow grid grid-cols-12 gap-6 overflow-hidden min-h-0">
+                <div class="flex-grow grid grid-cols-12 gap-4 overflow-hidden min-h-0 relative">
                     
                     <!-- Left: Windows (Dynamic Grid) -->
                     <div class="col-span-8 flex flex-col h-full overflow-hidden">
                         <div class="text-xs font-bold text-zinc-500 uppercase mb-2 flex items-center gap-2"><div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div> Now Serving</div>
                         
                         <!-- Windows Container: Flex wrap or Grid auto-fit -->
-                        <div id="monitor-windows-grid" class="flex-grow grid gap-4 content-start">
+                        <div id="monitor-windows-grid" class="flex-grow grid gap-3 content-start">
                             <!-- Injected JS -->
                         </div>
 
                         <!-- Hidden Audio Button -->
-                        <div id="monitor-audio-enable" class="mt-2 text-center h-6">
+                        <div id="monitor-audio-enable" class="mt-1 text-center h-4">
                             <button onclick="app.enableAudio()" class="text-[10px] text-zinc-600 hover:text-medical-400">
                                 <i class="fa-solid fa-volume-high"></i> Enable Audio
                             </button>
@@ -288,7 +294,7 @@
                     <div class="col-span-4 flex flex-col h-full overflow-hidden bg-zinc-900 rounded-2xl border border-zinc-800 shadow-xl">
                         <div class="flex-none p-3 bg-zinc-800/50 border-b border-zinc-800 flex justify-between items-center">
                             <h3 class="font-bold text-zinc-200 text-sm flex items-center gap-2">
-                                <i class="fa-solid fa-list-ol text-medical-500"></i> Next Patients
+                                <i class="fa-solid fa-list-ol text-medical-500"></i> Next in Queue
                             </h3>
                             <span class="text-xs bg-zinc-950 px-2 py-0.5 rounded text-zinc-400" id="monitor-total-waiting">0 Waiting</span>
                         </div>
@@ -300,26 +306,26 @@
                     </div>
                 </div>
 
-                <!-- Footer: Announcements (Fixed height) -->
-                <div class="flex-none h-32 grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-zinc-800">
+                <!-- Footer: Announcements (Fixed height, ensure visible) -->
+                <div class="flex-none h-32 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-zinc-800 z-10 bg-zinc-950">
                     <!-- Billing -->
-                    <div class="bg-zinc-900 rounded-xl border-l-4 border-green-500 p-3 overflow-hidden flex flex-col justify-center">
+                    <div class="bg-zinc-900 rounded-xl border-l-4 border-green-500 p-3 overflow-hidden flex flex-col justify-center shadow-lg">
                         <h4 class="text-[10px] font-bold text-green-500 uppercase mb-1 flex items-center gap-1"><i class="fa-solid fa-file-invoice-dollar"></i> Billing / Cashier</h4>
-                        <div id="announce-billing" class="text-sm text-zinc-300 font-medium line-clamp-2">
+                        <div id="announce-billing" class="text-sm text-zinc-300 font-medium line-clamp-3">
                             <span class="text-zinc-600 italic text-xs">No updates</span>
                         </div>
                     </div>
                     <!-- Lab/Pharmacy -->
-                    <div class="bg-zinc-900 rounded-xl border-l-4 border-blue-500 p-3 overflow-hidden flex flex-col justify-center">
+                    <div class="bg-zinc-900 rounded-xl border-l-4 border-blue-500 p-3 overflow-hidden flex flex-col justify-center shadow-lg">
                         <h4 class="text-[10px] font-bold text-blue-500 uppercase mb-1 flex items-center gap-1"><i class="fa-solid fa-flask"></i> Lab & Pharmacy</h4>
-                        <div id="announce-lab" class="text-sm text-zinc-300 font-medium line-clamp-2">
+                        <div id="announce-lab" class="text-sm text-zinc-300 font-medium line-clamp-3">
                             <span class="text-zinc-600 italic text-xs">No updates</span>
                         </div>
                     </div>
                     <!-- General -->
-                    <div class="bg-zinc-900 rounded-xl border-l-4 border-zinc-500 p-3 overflow-hidden flex flex-col justify-center">
+                    <div class="bg-zinc-900 rounded-xl border-l-4 border-zinc-500 p-3 overflow-hidden flex flex-col justify-center shadow-lg">
                         <h4 class="text-[10px] font-bold text-zinc-400 uppercase mb-1 flex items-center gap-1"><i class="fa-solid fa-bullhorn"></i> General Info</h4>
-                        <div id="announce-general" class="text-sm text-zinc-300 font-medium line-clamp-2">
+                        <div id="announce-general" class="text-sm text-zinc-300 font-medium line-clamp-3">
                             <span class="text-zinc-600 italic text-xs">No updates</span>
                         </div>
                     </div>
@@ -400,20 +406,29 @@
                                 </div>
                             </div>
 
-                            <!-- Announcements -->
+                            <!-- Announcements Management -->
                             <div class="p-3 bg-zinc-950 rounded-lg border border-zinc-800">
-                                <label class="text-sm text-zinc-300 block mb-2">Post Announcement</label>
+                                <label class="text-sm text-zinc-300 block mb-2 font-bold text-white"><i class="fa-solid fa-bullhorn mr-1"></i> Announcements</label>
+                                
+                                <!-- Active List (Improved Visibility) -->
+                                <div class="mb-3 bg-zinc-900 rounded border border-zinc-700 p-2">
+                                    <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Active Messages</div>
+                                    <div id="active-announcements" class="text-xs space-y-2 max-h-24 overflow-y-auto">
+                                        <div class="text-zinc-600 italic">No active announcements</div>
+                                    </div>
+                                </div>
+
+                                <!-- Post New -->
                                 <div class="space-y-2">
-                                    <input type="text" id="announce-text" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white" placeholder="Message content...">
+                                    <input type="text" id="announce-text" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white" placeholder="New message content...">
                                     <div class="flex gap-2">
                                         <select id="announce-cat" class="bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white flex-1">
                                             <option value="Billing">Billing</option>
                                             <option value="Lab">Lab/Pharmacy</option>
                                             <option value="General">General</option>
                                         </select>
-                                        <button onclick="app.addAnnouncement()" class="bg-medical-600 text-white px-4 rounded text-xs font-bold">Post</button>
+                                        <button onclick="app.addAnnouncement()" class="bg-medical-600 hover:bg-medical-500 text-white px-4 rounded text-xs font-bold transition-colors">Post</button>
                                     </div>
-                                    <div id="active-announcements" class="text-[10px] text-zinc-500 mt-2 space-y-1"></div>
                                 </div>
                             </div>
 
@@ -451,7 +466,7 @@
                             </table>
                             <div id="admin-empty-state" class="hidden h-32 flex flex-col items-center justify-center text-zinc-600">
                                 <i class="fa-solid fa-check-circle text-2xl mb-2 opacity-30"></i>
-                                <p class="text-xs">No pending patients</p>
+                                <p class="text-xs">No pending visitors</p>
                             </div>
                         </div>
                     </div>
@@ -487,7 +502,7 @@
             appId: "1:415667772828:web:48f97fe6179029fb797c59"
         };
         
-        const appId = "hospital-queue-v1"; // Changed App ID to separate data from old version
+        const appId = "hospital-queue-v1"; 
         const app_firebase = initializeApp(firebaseConfig);
         const auth = getAuth(app_firebase);
         const db = getFirestore(app_firebase);
@@ -500,14 +515,22 @@
                 lastTicket: 0, 
                 windowCount: 4, 
                 queueDate: "",
-                // Default: Window 1 handles Billing, others handle All, etc. Can be customized.
                 windowConfigs: { 1: ['All'], 2: ['All'], 3: ['All'], 4: ['All'] } 
             },
             queue: [],
             announcements: [],
             currentView: 'home',
             audioEnabled: false,
-            purposes: ["Check-up", "Billing", "Laboratory", "Pharmacy", "Emergency", "Others"]
+            purposes: ["Check-up", "Billing", "Laboratory", "Pharmacy", "Emergency", "Others"],
+            // New Sub-purposes
+            subPurposes: {
+                "Check-up": ["General", "Pedia", "OB-GYN", "Dental", "Optical", "Specialist"],
+                "Billing": ["Cashier", "HMO", "PhilHealth", "Billing Inquiry"],
+                "Laboratory": ["Blood Test", "X-Ray", "Ultrasound", "Results"],
+                "Pharmacy": ["Purchase", "Prescription", "Senior/PWD"],
+                "Emergency": ["Triage", "Trauma", "Ambulance"],
+                "Others": ["Inquiry", "Med Cert", "HR", "Admin"]
+            }
         };
 
         // --- Controller ---
@@ -520,14 +543,31 @@
                 const target = document.getElementById(`view-${viewId}`);
                 if (target) {
                     target.style.display = 'block';
-                    // Force layout recalc for monitor
                     setTimeout(() => target.classList.add('active'), 10);
+                    
+                    // Render Kiosk Purposes on load
+                    if(viewId === 'kiosk') app.renderKioskPurposes();
                 }
                 state.currentView = viewId;
             },
 
-            // --- Kiosk ---
+            // --- Kiosk Logic ---
+            renderKioskPurposes: () => {
+                const container = document.getElementById('main-purpose-list');
+                container.innerHTML = '';
+                state.purposes.forEach(p => {
+                    container.insertAdjacentHTML('beforeend', `
+                        <button type="button" class="purpose-btn p-3 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 hover:border-medical-500/50 text-zinc-300 text-sm font-medium transition-all text-center" 
+                            data-value="${p}" onclick="app.selectPurpose(this)">${p}</button>
+                    `);
+                });
+                // Default select first
+                const first = container.querySelector('button');
+                if(first) first.click();
+            },
+
             selectPurpose: (btn) => {
+                // UI Reset Main Buttons
                 document.querySelectorAll('.purpose-btn').forEach(b => {
                     b.classList.remove('bg-zinc-800', 'border-medical-500', 'text-medical-400', 'ring-1', 'ring-medical-900');
                     b.classList.add('bg-zinc-950', 'border-zinc-700', 'text-zinc-300');
@@ -538,32 +578,71 @@
                 const val = btn.dataset.value;
                 document.getElementById('selected-purpose').value = val;
 
-                // Requirement 4: Others Input
+                // Handle Sub Purposes
+                const subContainer = document.getElementById('sub-purpose-section');
+                const subList = document.getElementById('sub-purpose-list');
                 const otherContainer = document.getElementById('other-reason-container');
+                
+                // Clear subs
+                subList.innerHTML = '';
+                document.getElementById('selected-sub-purpose').value = '';
+
                 if (val === 'Others') {
+                    subContainer.classList.add('hidden');
                     otherContainer.classList.remove('hidden');
                     document.getElementById('other-reason-input').focus();
                 } else {
                     otherContainer.classList.add('hidden');
+                    const subs = state.subPurposes[val] || [];
+                    if (subs.length > 0) {
+                        subContainer.classList.remove('hidden');
+                        subs.forEach(sub => {
+                            subList.insertAdjacentHTML('beforeend', `
+                                <button type="button" class="sub-purpose-btn p-2 rounded border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium transition-all text-center"
+                                    data-value="${sub}" onclick="app.selectSubPurpose(this)">${sub}</button>
+                            `);
+                        });
+                        // Auto-click first sub to ensure a value is set? No, let user choose.
+                    } else {
+                        subContainer.classList.add('hidden');
+                    }
                 }
+            },
+
+            selectSubPurpose: (btn) => {
+                document.querySelectorAll('.sub-purpose-btn').forEach(b => {
+                    b.classList.remove('bg-medical-900/30', 'border-medical-500', 'text-white');
+                    b.classList.add('bg-zinc-900', 'border-zinc-700', 'text-zinc-400');
+                });
+                btn.classList.remove('bg-zinc-900', 'border-zinc-700', 'text-zinc-400');
+                btn.classList.add('bg-medical-900/30', 'border-medical-500', 'text-white');
+                document.getElementById('selected-sub-purpose').value = btn.dataset.value;
             },
 
             getTicket: async () => {
                 const name = document.getElementById('patient-name').value.trim();
                 let purpose = document.getElementById('selected-purpose').value;
+                let subPurpose = document.getElementById('selected-sub-purpose').value;
                 const pId = document.getElementById('patient-id').value.trim();
 
-                if (!name) { app.showToast("Please enter patient name"); return; }
+                if (!name) { app.showToast("Please enter visitor name"); return; }
                 
-                // Requirement 4: Validate Custom Reason
+                // Validate Sub Purpose / Others
                 if (purpose === 'Others') {
                     const customReason = document.getElementById('other-reason-input').value.trim();
                     if (!customReason) {
-                        app.showToast("Please specify the reason for visit");
+                        app.showToast("Please specify the reason");
                         document.getElementById('other-reason-input').focus();
                         return;
                     }
-                    purpose = customReason; // Use custom text
+                    purpose = "Others"; 
+                    subPurpose = customReason; // Treat custom text as sub-purpose for display
+                } else {
+                    // Check if sub-purpose is required (if subs exist for this category)
+                    if (state.subPurposes[purpose] && !subPurpose) {
+                        app.showToast(`Please select a specific ${purpose} service`);
+                        return;
+                    }
                 }
 
                 const btn = document.getElementById('btn-get-ticket');
@@ -577,8 +656,9 @@
                     await setDoc(queueRef, {
                         ticketNumber: newTicketNum, 
                         name: name, 
-                        studentId: pId, // Kept key as studentId for backward compat or refactor to patientId
+                        studentId: pId,
                         purpose: purpose, 
+                        subPurpose: subPurpose, // New Field
                         status: 'waiting', 
                         skipCount: 0, 
                         alarmPlaying: false, 
@@ -590,7 +670,11 @@
 
                     // UI Success
                     document.getElementById('ticket-name-display').textContent = name;
-                    document.getElementById('ticket-purpose-display').textContent = purpose;
+                    // Display composite purpose
+                    let displayPurpose = purpose;
+                    if(subPurpose) displayPurpose += ` - ${subPurpose}`;
+                    document.getElementById('ticket-purpose-display').textContent = displayPurpose;
+                    
                     document.getElementById('new-ticket-number').textContent = `#${String(newTicketNum).padStart(3, '0')}`;
                     document.getElementById('ticket-time').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     
@@ -605,16 +689,12 @@
                 document.getElementById('patient-name').value = '';
                 document.getElementById('patient-id').value = '';
                 document.getElementById('other-reason-input').value = '';
+                document.getElementById('selected-sub-purpose').value = '';
                 document.getElementById('other-reason-container').classList.add('hidden');
+                document.getElementById('sub-purpose-section').classList.add('hidden');
                 
-                // Reset buttons
-                document.querySelectorAll('.purpose-btn').forEach(b => {
-                    b.classList.remove('bg-zinc-800', 'border-medical-500', 'text-medical-400', 'ring-1', 'ring-medical-900');
-                    b.classList.add('bg-zinc-950', 'border-zinc-700', 'text-zinc-300');
-                });
-                // Select first
-                const first = document.querySelector('.purpose-btn[data-value="Check-up"]');
-                if(first) first.click();
+                // Reset main buttons
+                app.renderKioskPurposes(); 
 
                 document.getElementById('kiosk-form-container').classList.remove('hidden');
                 document.getElementById('ticket-success').classList.add('hidden');
@@ -656,11 +736,10 @@
                 app.showToast("PIN Updated");
             },
 
-            // Requirement 3: Window Purpose Configuration
             saveWindowConfig: async (winId, selectEl) => {
                 const val = selectEl.value;
                 const newConfigs = { ...state.settings.windowConfigs };
-                newConfigs[winId] = [val]; // For simplicity, single selection, but stored as array
+                newConfigs[winId] = [val]; 
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { windowConfigs: newConfigs });
                 app.showToast(`Window ${winId} set to ${val}`);
             },
@@ -688,25 +767,25 @@
             },
 
             deleteAnnouncement: async (id) => {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'announcements', id));
+                if(confirm("Delete this announcement?")) {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'announcements', id));
+                }
             },
 
             // --- Queue Operations ---
-            
-            // Requirement 3: Call Next based on Window Purpose
             callNextForWindow: async (windowNum) => {
                 const config = state.settings.windowConfigs?.[windowNum] || ['All'];
                 const allowed = config.includes('All') ? null : config;
 
-                // Find oldest waiting ticket that matches criteria
+                // Find oldest waiting ticket that matches criteria (Main Purpose)
                 const nextItem = state.queue.find(item => {
                     if (item.status !== 'waiting') return false;
-                    if (!allowed) return true; // Allows everything
-                    return allowed.includes(item.purpose); // Exact match check
+                    if (!allowed) return true; 
+                    return allowed.includes(item.purpose); 
                 });
 
                 if (!nextItem) { 
-                    app.showToast(allowed ? `No ${allowed[0]} patients waiting` : "Queue is empty"); 
+                    app.showToast(allowed ? `No ${allowed[0]} visitors waiting` : "Queue is empty"); 
                     return; 
                 }
 
@@ -799,13 +878,16 @@
                 
                 if (ticket) {
                     const isAlarm = ticket.alarmPlaying;
+                    let displayPurpose = ticket.purpose;
+                    if(ticket.subPurpose) displayPurpose += ` (${ticket.subPurpose})`;
+
                     adminCounters.insertAdjacentHTML('beforeend', `
                         <div class="bg-zinc-950 border border-medical-900/30 p-3 rounded-xl">
                             <div class="flex justify-between items-start mb-2">
                                 <div>
                                     <div class="text-[10px] font-bold text-medical-500 uppercase">Station ${i} (${role})</div>
                                     <div class="text-lg font-black text-white truncate w-32">${ticket.name}</div>
-                                    <div class="text-[10px] text-zinc-400">#${String(ticket.ticketNumber).padStart(3,'0')} • ${ticket.purpose}</div>
+                                    <div class="text-[10px] text-zinc-400">#${String(ticket.ticketNumber).padStart(3,'0')} • ${displayPurpose}</div>
                                 </div>
                                 <button onclick="app.finishForWindow('${ticket.id}')" class="bg-medical-600 hover:bg-medical-500 text-white px-2 py-1 rounded text-xs font-bold">Done</button>
                             </div>
@@ -833,10 +915,13 @@
             else {
                 adminEmpty.classList.add('hidden');
                 waiting.forEach(item => {
+                    let displayPurpose = item.purpose;
+                    if(item.subPurpose) displayPurpose += ` <span class="text-zinc-500 text-[10px]">(${item.subPurpose})</span>`;
+
                     adminList.insertAdjacentHTML('beforeend', `
                         <tr class="hover:bg-zinc-950 border-b border-zinc-800 last:border-0">
                             <td class="p-3 font-medium text-white">${item.name}</td>
-                            <td class="p-3"><span class="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">${item.purpose}</span></td>
+                            <td class="p-3"><span class="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">${displayPurpose}</span></td>
                             <td class="p-3 text-right"><button onclick="app.removeTicket('${item.id}')" class="text-zinc-600 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
                     `);
@@ -847,29 +932,30 @@
             const monitorGrid = document.getElementById('monitor-windows-grid');
             monitorGrid.innerHTML = '';
             
-            // Dynamic Grid sizing based on window count to strictly avoid scroll
-            // Requirement 2: All visuals must be viewed.
             const wCount = state.settings.windowCount;
             let gridClass = "grid-cols-2";
             if(wCount === 1) gridClass = "grid-cols-1";
             else if(wCount > 6) gridClass = "grid-cols-4";
             else if(wCount > 2) gridClass = "grid-cols-2 md:grid-cols-3";
             
-            monitorGrid.className = `flex-grow grid gap-4 content-start ${gridClass}`;
+            monitorGrid.className = `flex-grow grid gap-3 content-start ${gridClass}`;
 
-            // Calculate height for items to fill screen properly
             const itemHeightClass = wCount > 4 ? "h-32" : "h-40";
 
             for(let i=1; i<=wCount; i++) {
                 const ticket = serving.find(t => t.window === i);
                 if (ticket) {
                     const isAlarm = ticket.alarmPlaying;
+                    // For monitor card, check sub-purpose length.
+                    let purposeText = ticket.purpose;
+                    if(ticket.subPurpose) purposeText = ticket.subPurpose; // Prioritize sub-purpose for visibility? Or concat? Let's use sub if available for specificity.
+                    
                     monitorGrid.insertAdjacentHTML('beforeend', `
                         <div class="${isAlarm ? 'bg-red-950 border-red-500 serving-card-animation' : 'bg-medical-900/10 border-medical-500 serving-card-silent'} border-l-4 rounded-xl p-4 relative overflow-hidden flex flex-col justify-between transition-all ${itemHeightClass}">
                             <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Station ${i}</div>
                             <div class="text-3xl md:text-4xl font-black text-white leading-tight line-clamp-1">${ticket.name}</div>
                             <div class="flex justify-between items-end border-t border-white/10 pt-2">
-                                <div class="text-xs font-bold text-medical-400 uppercase">${ticket.purpose}</div>
+                                <div class="text-xs font-bold text-medical-400 uppercase truncate max-w-[70%]">${purposeText}</div>
                                 <div class="text-xl font-mono text-white/50">#${String(ticket.ticketNumber).padStart(3,'0')}</div>
                             </div>
                         </div>
@@ -885,29 +971,31 @@
                 }
             }
 
-            // 4. Monitor Waiting List (Restricted count)
+            // 4. Monitor Waiting List
             const monitorList = document.getElementById('monitor-list');
             monitorList.innerHTML = '';
             document.getElementById('monitor-total-waiting').innerText = `${waiting.length} Waiting`;
             
-            // Limit shown items to prevent scrolling based on approximate height
             const maxItems = 6; 
             const shownItems = waiting.slice(0, maxItems);
             
             shownItems.forEach(item => {
+                let purposeDisp = item.purpose;
+                if(item.subPurpose) purposeDisp = item.subPurpose; // Shorten for list
+
                 monitorList.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center justify-between p-2 bg-zinc-950/50 rounded border border-zinc-800/50">
                         <div class="flex items-center gap-3 w-3/4">
                             <div class="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-zinc-500 text-[10px] font-mono">#${String(item.ticketNumber).padStart(3,'0')}</div>
                             <div class="font-bold text-sm text-zinc-300 truncate">${item.name}</div>
                         </div>
-                        <div class="text-[10px] font-bold text-medical-500 uppercase text-right">${item.purpose}</div>
+                        <div class="text-[10px] font-bold text-medical-500 uppercase text-right truncate w-1/4">${purposeDisp}</div>
                     </div>
                 `);
             });
             
             if(waiting.length > maxItems) {
-                monitorList.insertAdjacentHTML('beforeend', `<div class="text-center text-xs text-zinc-600 mt-1 italic">+${waiting.length - maxItems} more patients...</div>`);
+                monitorList.insertAdjacentHTML('beforeend', `<div class="text-center text-xs text-zinc-600 mt-1 italic">+${waiting.length - maxItems} more...</div>`);
             }
         }
 
@@ -917,7 +1005,7 @@
             
             cats.forEach(cat => {
                 const el = document.getElementById(`announce-${cat.toLowerCase()}`);
-                const items = list.filter(a => a.category === cat || (cat === 'Lab' && a.category === 'Pharmacy')); // Group lab/pharmacy
+                const items = list.filter(a => a.category === cat || (cat === 'Lab' && a.category === 'Pharmacy')); 
                 if(items.length > 0) {
                     const latest = items.sort((a,b) => b.timestamp - a.timestamp)[0];
                     el.innerHTML = `<span class="text-white">${latest.content}</span>`;
@@ -926,26 +1014,34 @@
                 }
             });
 
-            // Admin list
+            // Admin list - Improved
             const adminEl = document.getElementById('active-announcements');
-            adminEl.innerHTML = list.map(a => `<div class="flex justify-between"><span>${a.content}</span><button onclick="app.deleteAnnouncement('${a.id}')" class="text-red-500">&times;</button></div>`).join('');
+            if(list.length === 0) {
+                adminEl.innerHTML = `<div class="text-zinc-600 italic text-center py-2">No active announcements</div>`;
+            } else {
+                adminEl.innerHTML = list.map(a => `
+                    <div class="flex justify-between items-center bg-zinc-800/50 p-2 rounded hover:bg-zinc-800 transition-colors">
+                        <div>
+                            <span class="text-[10px] text-zinc-400 uppercase border border-zinc-700 px-1 rounded mr-2">${a.category}</span>
+                            <span class="text-white text-xs">${a.content}</span>
+                        </div>
+                        <button onclick="app.deleteAnnouncement('${a.id}')" class="text-red-500 hover:text-red-400 px-2"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            }
         }
 
         // --- Init ---
         async function init() {
             try { await signInAnonymously(auth); } catch (e) { console.error(e); }
             
-            // Clock
             setInterval(() => {
                 const now = new Date();
                 document.getElementById('clock-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 document.getElementById('clock-date').innerText = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
                 
-                // Auto Reset Check
                 const today = new Date().toLocaleDateString('en-CA');
                 if(state.settings.queueDate && state.settings.queueDate !== today) {
-                    // It's a new day, simplistic trigger. Ideally cloud function.
-                    // We just update locally to prompt admin or lazy update.
                     updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { queueDate: today, lastTicket: 0 });
                 }
             }, 1000);
@@ -960,7 +1056,7 @@
                     state.settings = { ...state.settings, ...snap.data() };
                     updateUI();
                 } else {
-                    setDoc(settingsRef, state.settings); // Init defaults
+                    setDoc(settingsRef, state.settings); 
                 }
             });
 
@@ -981,7 +1077,6 @@
                 updateAnnouncements();
             });
             
-            // Connection Status
             onAuthStateChanged(auth, (user) => {
                 if(user) {
                     document.getElementById('status-text').innerText = "Online";
