@@ -12,12 +12,22 @@
                 extend: {
                     colors: {
                         medical: {
-                            50: '#f0fdfa',
-                            100: '#ccfbf1',
-                            400: '#2dd4bf', // teal-400
-                            500: '#14b8a6', // teal-500
-                            600: '#0d9488', // teal-600
-                            900: '#134e4a',
+                            50: '#ecfdf5', // emerald-50
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981', // emerald-500
+                            600: '#059669', // emerald-600 (Primary "Dark Green but lighter")
+                            700: '#047857', // emerald-700
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        accent: {
+                            300: '#bef264',
+                            400: '#a3e635', // lime-400 ("Yellow Green")
+                            500: '#84cc16', // lime-500
+                            600: '#65a30d',
                         }
                     }
                 }
@@ -28,7 +38,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
         
-        body { font-family: 'Inter', sans-serif; overflow: hidden; /* Prevent body scroll globally */ }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
         /* View Management */
@@ -38,14 +48,13 @@
             transition: opacity 0.3s ease-in-out;
             height: 100vh;
             width: 100vw;
-            overflow-y: auto; /* Default scroll for kiosk/admin */
+            overflow-y: auto; 
         }
         .view-section.active {
             display: block;
             opacity: 1;
         }
 
-        /* Specific override for Monitor to ban scrolling */
         #view-monitor {
             overflow: hidden; 
             padding-bottom: 0;
@@ -53,17 +62,17 @@
 
         /* Animations */
         @keyframes pulse-ring {
-            0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(132, 204, 22, 0.7); } /* Lime shadow */
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(132, 204, 22, 0); }
+            100% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(132, 204, 22, 0); }
         }
         .serving-card-animation {
             animation: pulse-ring 1.5s infinite;
-            border-color: #ef4444;
+            border-color: #84cc16; /* accent-500 */
         }
         .serving-card-silent {
-            border-color: #14b8a6; /* medical-500 */
-            box-shadow: 0 0 15px -3px rgba(20, 184, 166, 0.3);
+            border-color: #059669; /* medical-600 */
+            box-shadow: 0 0 15px -3px rgba(5, 150, 105, 0.2);
         }
 
         @keyframes slideIn {
@@ -73,39 +82,39 @@
         .animate-slide-in { animation: slideIn 0.4s ease-out forwards; }
 
         .loader {
-            border: 3px solid #3f3f46; 
+            border: 3px solid #e2e8f0; 
             border-radius: 50%;
-            border-top: 3px solid #14b8a6; 
+            border-top: 3px solid #059669; 
             width: 20px;
             height: 20px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Custom Scrollbar for Admin/Kiosk */
+        /* Custom Scrollbar (Light Theme) */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #18181b; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 selection:bg-medical-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 selection:bg-accent-300 selection:text-medical-900">
 
     <!-- Global Header (Fixed) -->
-    <nav class="bg-zinc-900 border-b border-zinc-800 p-3 shadow-lg fixed top-0 w-full z-50 h-[60px] flex items-center">
+    <nav class="bg-medical-700 border-b border-medical-800 p-3 shadow-lg fixed top-0 w-full z-50 h-[60px] flex items-center">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-center px-4">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="app.navigate('home')">
-                <div class="bg-medical-600 p-1.5 rounded-lg shadow-lg shadow-medical-900/50 group-hover:bg-medical-500 transition-colors">
-                    <i class="fa-solid fa-hospital text-lg text-white"></i>
+                <div class="bg-white p-1.5 rounded-lg shadow-lg group-hover:bg-slate-100 transition-colors">
+                    <i class="fa-solid fa-hospital text-lg text-medical-700"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-base leading-tight text-white group-hover:text-medical-400 transition-colors">Pampanga Medical Specialist Hospital</h1>
-                    <p class="text-[10px] text-zinc-400 uppercase tracking-wider">Triage System</p>
+                    <h1 class="font-bold text-base leading-tight text-white group-hover:text-accent-300 transition-colors">Pampanga Medical Specialist Hospital</h1>
+                    <p class="text-[10px] text-medical-100 uppercase tracking-wider">Triage System</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <div id="connection-status" class="flex items-center gap-2 text-[10px] text-zinc-400 bg-zinc-950 px-3 py-1 rounded-full border border-zinc-800">
-                    <div class="w-2 h-2 rounded-full bg-yellow-600" id="status-dot"></div>
+                <div id="connection-status" class="flex items-center gap-2 text-[10px] text-white bg-medical-800/50 px-3 py-1 rounded-full border border-medical-600">
+                    <div class="w-2 h-2 rounded-full bg-accent-400" id="status-dot"></div>
                     <span id="status-text">Connecting...</span>
                 </div>
             </div>
@@ -120,39 +129,39 @@
             <div class="max-w-7xl mx-auto p-6 mt-10">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Card 1: Kiosk -->
-                    <button onclick="app.navigate('kiosk')" class="group p-8 bg-zinc-900 rounded-2xl shadow-lg hover:shadow-medical-900/20 hover:border-medical-800 transition-all border border-zinc-800 text-left relative overflow-hidden h-64 flex flex-col justify-end">
-                        <div class="absolute top-4 right-4 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <button onclick="app.navigate('kiosk')" class="group p-8 bg-white rounded-2xl shadow-sm hover:shadow-xl hover:border-medical-500 transition-all border border-slate-200 text-left relative overflow-hidden h-64 flex flex-col justify-end">
+                        <div class="absolute top-4 right-4 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                             <i class="fa-solid fa-ticket text-8xl text-medical-600"></i>
                         </div>
-                        <div class="bg-zinc-800 w-12 h-12 rounded-xl flex items-center justify-center text-medical-500 mb-4 group-hover:scale-110 group-hover:bg-medical-900/30 transition-all">
+                        <div class="bg-medical-50 w-12 h-12 rounded-xl flex items-center justify-center text-medical-600 mb-4 group-hover:scale-110 group-hover:bg-medical-100 transition-all">
                             <i class="fa-solid fa-user-plus text-xl"></i>
                         </div>
-                        <h2 class="text-2xl font-bold mb-1 text-zinc-100 group-hover:text-medical-400 transition-colors">Visitor Kiosk</h2>
-                        <p class="text-zinc-500 text-sm group-hover:text-zinc-400">Get a queue number</p>
+                        <h2 class="text-2xl font-bold mb-1 text-slate-800 group-hover:text-medical-600 transition-colors">Visitor Kiosk</h2>
+                        <p class="text-slate-500 text-sm group-hover:text-slate-600">Get a queue number</p>
                     </button>
 
                     <!-- Card 2: Monitor -->
-                    <button onclick="app.navigate('monitor')" class="group p-8 bg-zinc-900 rounded-2xl shadow-lg hover:shadow-blue-900/20 hover:border-blue-800/50 transition-all border border-zinc-800 text-left relative overflow-hidden h-64 flex flex-col justify-end">
-                        <div class="absolute top-4 right-4 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <button onclick="app.navigate('monitor')" class="group p-8 bg-white rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-500 transition-all border border-slate-200 text-left relative overflow-hidden h-64 flex flex-col justify-end">
+                        <div class="absolute top-4 right-4 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                             <i class="fa-solid fa-tv text-8xl text-blue-600"></i>
                         </div>
-                        <div class="bg-zinc-800 w-12 h-12 rounded-xl flex items-center justify-center text-blue-500 mb-4 group-hover:scale-110 group-hover:bg-blue-900/30 transition-all">
+                        <div class="bg-blue-50 w-12 h-12 rounded-xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 group-hover:bg-blue-100 transition-all">
                             <i class="fa-solid fa-desktop text-xl"></i>
                         </div>
-                        <h2 class="text-2xl font-bold mb-1 text-zinc-100 group-hover:text-blue-400 transition-colors">Live Monitor</h2>
-                        <p class="text-zinc-500 text-sm group-hover:text-zinc-400">Public waiting area display</p>
+                        <h2 class="text-2xl font-bold mb-1 text-slate-800 group-hover:text-blue-600 transition-colors">Live Monitor</h2>
+                        <p class="text-slate-500 text-sm group-hover:text-slate-600">Public waiting area display</p>
                     </button>
 
                     <!-- Card 3: Admin -->
-                    <button onclick="app.navigate('admin-login')" class="group p-8 bg-zinc-900 rounded-2xl shadow-lg hover:shadow-zinc-700/20 hover:border-zinc-600 transition-all border border-zinc-800 text-left relative overflow-hidden h-64 flex flex-col justify-end">
-                        <div class="absolute top-4 right-4 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <i class="fa-solid fa-user-doctor text-8xl text-zinc-600"></i>
+                    <button onclick="app.navigate('admin-login')" class="group p-8 bg-white rounded-2xl shadow-sm hover:shadow-xl hover:border-slate-400 transition-all border border-slate-200 text-left relative overflow-hidden h-64 flex flex-col justify-end">
+                        <div class="absolute top-4 right-4 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <i class="fa-solid fa-user-doctor text-8xl text-slate-600"></i>
                         </div>
-                        <div class="bg-zinc-800 w-12 h-12 rounded-xl flex items-center justify-center text-zinc-400 mb-4 group-hover:scale-110 group-hover:bg-zinc-700 group-hover:text-zinc-200 transition-all">
+                        <div class="bg-slate-100 w-12 h-12 rounded-xl flex items-center justify-center text-slate-500 mb-4 group-hover:scale-110 group-hover:bg-slate-200 group-hover:text-slate-700 transition-all">
                             <i class="fa-solid fa-lock text-xl"></i>
                         </div>
-                        <h2 class="text-2xl font-bold mb-1 text-zinc-100 group-hover:text-white transition-colors">Staff Access</h2>
-                        <p class="text-zinc-500 text-sm group-hover:text-zinc-400">Counter controls & settings</p>
+                        <h2 class="text-2xl font-bold mb-1 text-slate-800 group-hover:text-slate-900 transition-colors">Staff Access</h2>
+                        <p class="text-slate-500 text-sm group-hover:text-slate-600">Counter controls & settings</p>
                     </button>
                 </div>
             </div>
@@ -161,8 +170,8 @@
         <!-- VIEW: Kiosk -->
         <div id="view-kiosk" class="view-section">
             <div class="max-w-md mx-auto my-6 px-4">
-                <div class="bg-zinc-900 rounded-2xl shadow-xl border border-zinc-800 overflow-hidden">
-                    <div class="bg-gradient-to-r from-medical-800 to-medical-900 p-6 text-white text-center relative overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-medical-700 to-medical-800 p-6 text-white text-center relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
                         <h2 class="text-2xl font-bold relative z-10"><i class="fa-solid fa-user-tag mr-2"></i>Visitor Check-in</h2>
                     </div>
@@ -170,17 +179,17 @@
                         <div id="kiosk-form-container">
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Visitor Name</label>
-                                    <input type="text" id="patient-name" class="w-full p-3 bg-zinc-950 border border-zinc-700 text-white rounded-lg focus:ring-1 focus:ring-medical-500 focus:border-medical-500 outline-none transition-all placeholder-zinc-600" placeholder="Full Name" autocomplete="off">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Visitor Name</label>
+                                    <input type="text" id="patient-name" class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 focus:border-medical-500 outline-none transition-all placeholder-slate-400" placeholder="Full Name" autocomplete="off">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">ID / Case No. (Optional)</label>
-                                    <input type="text" id="patient-id" class="w-full p-3 bg-zinc-950 border border-zinc-700 text-white rounded-lg focus:ring-1 focus:ring-medical-500 outline-none transition-all placeholder-zinc-600" placeholder="e.g. OP-2024-001">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ID / Case No. (Optional)</label>
+                                    <input type="text" id="patient-id" class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 outline-none transition-all placeholder-slate-400" placeholder="e.g. OP-2024-001">
                                 </div>
                                 
                                 <!-- Main Purpose -->
                                 <div>
-                                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Primary Purpose</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Primary Purpose</label>
                                     <div class="grid grid-cols-2 gap-2" id="main-purpose-list">
                                         <!-- Injected by JS -->
                                     </div>
@@ -189,8 +198,8 @@
 
                                 <!-- Sub Purpose Area (Dynamic) -->
                                 <div id="sub-purpose-section" class="hidden animate-slide-in">
-                                    <label class="block text-xs font-bold text-medical-400 uppercase mb-2">Specific Service</label>
-                                    <div class="grid grid-cols-2 gap-2 bg-zinc-950/50 p-2 rounded-lg border border-zinc-800" id="sub-purpose-list">
+                                    <label class="block text-xs font-bold text-medical-600 uppercase mb-2">Specific Service</label>
+                                    <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200" id="sub-purpose-list">
                                         <!-- Injected by JS -->
                                     </div>
                                     <input type="hidden" id="selected-sub-purpose" value="">
@@ -198,12 +207,12 @@
                                 
                                 <!-- Custom Reason Input for 'Others' -->
                                 <div id="other-reason-container" class="hidden animate-slide-in">
-                                    <label class="block text-xs font-bold text-medical-400 uppercase mb-1">Please specify reason</label>
-                                    <input type="text" id="other-reason-input" class="w-full p-3 bg-zinc-800 border border-zinc-600 text-white rounded-lg focus:ring-1 focus:ring-medical-500 outline-none" placeholder="e.g. Medical Certificate">
+                                    <label class="block text-xs font-bold text-medical-600 uppercase mb-1">Please specify reason</label>
+                                    <input type="text" id="other-reason-input" class="w-full p-3 bg-slate-100 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 outline-none" placeholder="e.g. Medical Certificate">
                                 </div>
 
                             </div>
-                            <button onclick="app.getTicket()" id="btn-get-ticket" class="w-full mt-6 bg-medical-600 hover:bg-medical-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-medical-900/20 active:scale-95 flex items-center justify-center gap-2">
+                            <button onclick="app.getTicket()" id="btn-get-ticket" class="w-full mt-6 bg-medical-600 hover:bg-medical-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-medical-500/30 active:scale-95 flex items-center justify-center gap-2">
                                 <span>Print Ticket</span>
                                 <i class="fa-solid fa-print"></i>
                             </button>
@@ -211,40 +220,40 @@
 
                         <!-- Ticket Success -->
                         <div id="ticket-success" class="hidden text-center space-y-6 animate-slide-in">
-                            <div class="w-16 h-16 bg-medical-900/30 text-medical-400 border border-medical-800 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                            <div class="w-16 h-16 bg-medical-50 text-medical-600 border border-medical-200 rounded-full flex items-center justify-center mx-auto shadow-inner">
                                 <i class="fa-solid fa-check text-2xl"></i>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold text-white mb-1">Ticket Generated</h3>
-                                <div class="text-3xl font-black text-medical-400 break-words px-4" id="ticket-name-display">Name</div>
-                                <div class="text-sm text-zinc-400 mt-1" id="ticket-purpose-display">Purpose</div>
+                                <h3 class="text-xl font-bold text-slate-800 mb-1">Ticket Generated</h3>
+                                <div class="text-3xl font-black text-medical-600 break-words px-4" id="ticket-name-display">Name</div>
+                                <div class="text-sm text-slate-500 mt-1" id="ticket-purpose-display">Purpose</div>
                             </div>
-                            <div class="bg-white text-black p-4 rounded-xl border-t-4 border-medical-500 relative mx-4 shadow-xl">
-                                <div class="flex justify-between items-center border-b-2 border-dashed border-gray-300 pb-3 mb-3">
+                            <div class="bg-white text-black p-4 rounded-xl border-t-4 border-medical-500 relative mx-4 shadow-xl border-x border-b border-slate-100">
+                                <div class="flex justify-between items-center border-b-2 border-dashed border-slate-300 pb-3 mb-3">
                                     <div class="text-left">
-                                        <div class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Queue No.</div>
-                                        <div class="text-4xl font-mono font-black text-gray-900" id="new-ticket-number">#000</div>
+                                        <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Queue No.</div>
+                                        <div class="text-4xl font-mono font-black text-slate-900" id="new-ticket-number">#000</div>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Time</div>
-                                        <div class="text-xl font-bold text-gray-800" id="ticket-time">--:--</div>
+                                        <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Time</div>
+                                        <div class="text-xl font-bold text-slate-800" id="ticket-time">--:--</div>
                                     </div>
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-xs font-bold text-gray-600 uppercase">Pampanga Medical Specialist Hospital</p>
-                                    <p class="text-[10px] text-gray-400">Please wait for your number</p>
+                                    <p class="text-xs font-bold text-slate-600 uppercase">Pampanga Medical Specialist Hospital</p>
+                                    <p class="text-[10px] text-slate-400">Please wait for your number</p>
                                 </div>
                                 <!-- Cutout Circles -->
-                                <div class="absolute top-1/2 -left-2 w-4 h-4 bg-zinc-900 rounded-full"></div>
-                                <div class="absolute top-1/2 -right-2 w-4 h-4 bg-zinc-900 rounded-full"></div>
+                                <div class="absolute top-1/2 -left-2 w-4 h-4 bg-slate-50 rounded-full shadow-inner"></div>
+                                <div class="absolute top-1/2 -right-2 w-4 h-4 bg-slate-50 rounded-full shadow-inner"></div>
                             </div>
-                            <button onclick="app.resetKiosk()" class="text-medical-400 hover:text-medical-300 font-bold py-2 px-4 rounded-lg hover:bg-zinc-800 transition-colors text-sm">
+                            <button onclick="app.resetKiosk()" class="text-medical-600 hover:text-medical-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-100 transition-colors text-sm">
                                 Check-in Another Visitor
                             </button>
                         </div>
                     </div>
                 </div>
-                <button onclick="app.navigate('home')" class="mt-8 w-full text-zinc-500 hover:text-zinc-300 flex items-center justify-center gap-2 transition-colors text-sm">
+                <button onclick="app.navigate('home')" class="mt-8 w-full text-slate-500 hover:text-slate-700 flex items-center justify-center gap-2 transition-colors text-sm">
                     <i class="fa-solid fa-arrow-left"></i> Back to Main Menu
                 </button>
             </div>
@@ -253,20 +262,20 @@
         <!-- VIEW: Live Monitor (Non-scrollable) -->
         <div id="view-monitor" class="view-section">
             <!-- Full Height Container -->
-            <div class="h-full flex flex-col relative px-6 pb-2"> <!-- Reduced padding bottom to move footer down but fit -->
+            <div class="h-full flex flex-col relative px-6 pb-2"> 
                 
                 <!-- Monitor Header -->
-                <div class="flex-none flex justify-between items-center mb-2 py-2 border-b border-zinc-800">
+                <div class="flex-none flex justify-between items-center mb-2 py-2 border-b border-slate-200">
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-hospital text-3xl text-medical-500"></i>
+                        <i class="fa-solid fa-hospital text-3xl text-medical-600"></i>
                         <div>
-                            <h2 class="text-2xl font-black text-white uppercase tracking-tight leading-none">Main Waiting Area</h2>
-                            <span class="text-xs text-zinc-500 uppercase tracking-widest">Live Status</span>
+                            <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight leading-none">Main Waiting Area</h2>
+                            <span class="text-xs text-slate-500 uppercase tracking-widest">Live Status</span>
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="text-4xl font-mono font-bold text-medical-400 leading-none" id="clock-time">00:00</div>
-                        <div class="text-zinc-500 font-medium text-xs uppercase tracking-wide mt-1" id="clock-date">Jan 01, 2024</div>
+                        <div class="text-4xl font-mono font-bold text-medical-600 leading-none" id="clock-time">00:00</div>
+                        <div class="text-slate-500 font-medium text-xs uppercase tracking-wide mt-1" id="clock-date">Jan 01, 2024</div>
                     </div>
                 </div>
 
@@ -275,7 +284,7 @@
                     
                     <!-- Left: Windows (Dynamic Grid) -->
                     <div class="col-span-8 flex flex-col h-full overflow-hidden">
-                        <div class="text-xs font-bold text-zinc-500 uppercase mb-2 flex items-center gap-2"><div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div> Now Serving</div>
+                        <div class="text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-2"><div class="w-2 h-2 bg-accent-500 rounded-full animate-pulse"></div> Now Serving</div>
                         
                         <!-- Windows Container: Flex wrap or Grid auto-fit -->
                         <div id="monitor-windows-grid" class="flex-grow grid gap-3 content-start">
@@ -284,49 +293,49 @@
 
                         <!-- Hidden Audio Button -->
                         <div id="monitor-audio-enable" class="mt-1 text-center h-4">
-                            <button onclick="app.enableAudio()" class="text-[10px] text-zinc-600 hover:text-medical-400">
+                            <button onclick="app.enableAudio()" class="text-[10px] text-slate-500 hover:text-medical-600">
                                 <i class="fa-solid fa-volume-high"></i> Enable Audio
                             </button>
                         </div>
                     </div>
 
                     <!-- Right: Waiting List -->
-                    <div class="col-span-4 flex flex-col h-full overflow-hidden bg-zinc-900 rounded-2xl border border-zinc-800 shadow-xl">
-                        <div class="flex-none p-3 bg-zinc-800/50 border-b border-zinc-800 flex justify-between items-center">
-                            <h3 class="font-bold text-zinc-200 text-sm flex items-center gap-2">
-                                <i class="fa-solid fa-list-ol text-medical-500"></i> Next in Queue
+                    <div class="col-span-4 flex flex-col h-full overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-md">
+                        <div class="flex-none p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-list-ol text-medical-600"></i> Next in Queue
                             </h3>
-                            <span class="text-xs bg-zinc-950 px-2 py-0.5 rounded text-zinc-400" id="monitor-total-waiting">0 Waiting</span>
+                            <span class="text-xs bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-500" id="monitor-total-waiting">0 Waiting</span>
                         </div>
                         
-                        <!-- Waiting Items (Limited count, no scroll) -->
+                        <!-- Waiting Items -->
                         <div id="monitor-list" class="flex-grow flex flex-col p-2 gap-1 overflow-hidden">
                             <!-- Items injected here -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer: Announcements (Fixed height, ensure visible) -->
-                <div class="flex-none h-32 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-zinc-800 z-10 bg-zinc-950">
+                <!-- Footer: Announcements -->
+                <div class="flex-none h-32 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-slate-200 z-10 bg-slate-50">
                     <!-- Billing -->
-                    <div class="bg-zinc-900 rounded-xl border-l-4 border-green-500 p-3 overflow-hidden flex flex-col justify-center shadow-lg">
-                        <h4 class="text-[10px] font-bold text-green-500 uppercase mb-1 flex items-center gap-1"><i class="fa-solid fa-file-invoice-dollar"></i> Billing / Cashier</h4>
-                        <div id="announce-billing" class="text-sm text-zinc-300 font-medium line-clamp-3">
-                            <span class="text-zinc-600 italic text-xs">No updates</span>
+                    <div class="bg-white rounded-xl border-l-4 border-green-500 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
+                        <h4 class="text-[10px] font-bold text-green-600 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-file-invoice-dollar"></i> Billing / Cashier</h4>
+                        <div id="announce-billing" class="text-sm text-slate-600 font-medium h-full pt-4">
+                            <span class="text-slate-400 italic text-xs block mt-2">No updates</span>
                         </div>
                     </div>
                     <!-- Lab/Pharmacy -->
-                    <div class="bg-zinc-900 rounded-xl border-l-4 border-blue-500 p-3 overflow-hidden flex flex-col justify-center shadow-lg">
-                        <h4 class="text-[10px] font-bold text-blue-500 uppercase mb-1 flex items-center gap-1"><i class="fa-solid fa-flask"></i> Lab & Pharmacy</h4>
-                        <div id="announce-lab" class="text-sm text-zinc-300 font-medium line-clamp-3">
-                            <span class="text-zinc-600 italic text-xs">No updates</span>
+                    <div class="bg-white rounded-xl border-l-4 border-blue-500 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
+                        <h4 class="text-[10px] font-bold text-blue-600 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-flask"></i> Lab & Pharmacy</h4>
+                        <div id="announce-lab" class="text-sm text-slate-600 font-medium h-full pt-4">
+                            <span class="text-slate-400 italic text-xs block mt-2">No updates</span>
                         </div>
                     </div>
                     <!-- General -->
-                    <div class="bg-zinc-900 rounded-xl border-l-4 border-zinc-500 p-3 overflow-hidden flex flex-col justify-center shadow-lg">
-                        <h4 class="text-[10px] font-bold text-zinc-400 uppercase mb-1 flex items-center gap-1"><i class="fa-solid fa-bullhorn"></i> General Info</h4>
-                        <div id="announce-general" class="text-sm text-zinc-300 font-medium line-clamp-3">
-                            <span class="text-zinc-600 italic text-xs">No updates</span>
+                    <div class="bg-white rounded-xl border-l-4 border-slate-400 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
+                        <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-bullhorn"></i> General Info</h4>
+                        <div id="announce-general" class="text-sm text-slate-600 font-medium h-full pt-4">
+                            <span class="text-slate-400 italic text-xs block mt-2">No updates</span>
                         </div>
                     </div>
                 </div>
@@ -336,19 +345,19 @@
         <!-- VIEW: Admin Login -->
         <div id="view-admin-login" class="view-section">
             <div class="h-full flex flex-col items-center justify-center p-4">
-                <div class="w-full max-w-xs bg-zinc-900 p-8 rounded-2xl shadow-xl border border-zinc-800 text-center">
-                    <div class="w-14 h-14 bg-zinc-800 text-zinc-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <div class="w-full max-w-xs bg-white p-8 rounded-2xl shadow-xl border border-slate-200 text-center">
+                    <div class="w-14 h-14 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                         <i class="fa-solid fa-user-doctor text-2xl"></i>
                     </div>
-                    <h2 class="text-lg font-bold mb-1 text-white">Staff Login</h2>
-                    <p class="text-xs text-zinc-500 mb-6">Enter access PIN</p>
+                    <h2 class="text-lg font-bold mb-1 text-slate-800">Staff Login</h2>
+                    <p class="text-xs text-slate-500 mb-6">Enter access PIN</p>
                     <div class="space-y-4">
-                        <input type="password" id="admin-pin-input" class="w-full text-center text-2xl tracking-[0.5em] p-3 bg-zinc-950 border-b-2 border-zinc-800 focus:border-medical-500 outline-none font-bold rounded-t-lg transition-colors text-white" maxlength="4" placeholder="••••">
+                        <input type="password" id="admin-pin-input" class="w-full text-center text-2xl tracking-[0.5em] p-3 bg-slate-50 border-b-2 border-slate-200 focus:border-medical-500 outline-none font-bold rounded-t-lg transition-colors text-slate-800" maxlength="4" placeholder="••••">
                         <p id="pin-error" class="text-red-500 text-xs hidden flex items-center justify-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Incorrect PIN</p>
-                        <button onclick="app.verifyPin()" class="w-full bg-medical-600 hover:bg-medical-500 text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-95 text-sm">Access Dashboard</button>
+                        <button onclick="app.verifyPin()" class="w-full bg-medical-600 hover:bg-medical-700 text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-95 text-sm">Access Dashboard</button>
                     </div>
                 </div>
-                <button onclick="app.navigate('home')" class="mt-6 text-zinc-500 hover:text-zinc-300 text-xs">Cancel</button>
+                <button onclick="app.navigate('home')" class="mt-6 text-slate-500 hover:text-slate-700 text-xs">Cancel</button>
             </div>
         </div>
 
@@ -356,83 +365,57 @@
         <div id="view-admin-dashboard" class="view-section">
             <div class="max-w-7xl mx-auto p-4 md:p-6 h-full flex flex-col">
                 <!-- Dashboard Header -->
-                <div class="flex justify-between items-center mb-6 pb-4 border-b border-zinc-800">
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Station Control</h2>
+                        <h2 class="text-xl font-bold text-slate-800">Station Control</h2>
                         <div class="flex gap-2 text-[10px] mt-1">
-                            <span class="bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">Admin Mode</span>
-                            <span class="bg-medical-900/30 text-medical-400 px-2 py-0.5 rounded" id="admin-total-served">Served: 0</span>
+                            <span class="bg-slate-200 px-2 py-0.5 rounded text-slate-500">Admin Mode</span>
+                            <span class="bg-medical-100 text-medical-700 px-2 py-0.5 rounded" id="admin-total-served">Served: 0</span>
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="app.toggleSettings()" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 px-3 py-2 rounded-lg text-sm flex items-center gap-2"><i class="fa-solid fa-sliders"></i> Settings</button>
-                        <button onclick="app.logoutAdmin()" class="bg-red-900/20 hover:bg-red-900/40 border border-red-900/50 text-red-400 px-3 py-2 rounded-lg text-sm"><i class="fa-solid fa-power-off"></i></button>
+                        <button onclick="app.toggleSettings()" class="bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 px-3 py-2 rounded-lg text-sm flex items-center gap-2 shadow-sm"><i class="fa-solid fa-sliders"></i> Settings</button>
+                        <button onclick="app.logoutAdmin()" class="bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-sm"><i class="fa-solid fa-power-off"></i></button>
                     </div>
                 </div>
 
                 <!-- Settings Modal (Overlay) -->
-                <div id="admin-settings-panel" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-                    <div class="bg-zinc-900 w-full max-w-lg rounded-2xl border border-zinc-700 shadow-2xl p-6">
+                <div id="admin-settings-panel" class="hidden fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-white">System Configuration</h3>
-                            <button onclick="app.toggleSettings()" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                            <h3 class="font-bold text-slate-800">System Configuration</h3>
+                            <button onclick="app.toggleSettings()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                         
                         <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                             <!-- Window Count -->
-                            <div class="flex items-center justify-between p-3 bg-zinc-950 rounded-lg border border-zinc-800">
-                                <label class="text-sm text-zinc-300">Active Counters</label>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <label class="text-sm text-slate-600">Active Counters</label>
                                 <div class="flex items-center gap-2">
-                                    <button onclick="app.adjustWindowCount(-1)" class="w-8 h-8 rounded bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 text-white">-</button>
-                                    <span id="setting-window-count" class="font-mono font-bold w-6 text-center text-white">3</span>
-                                    <button onclick="app.adjustWindowCount(1)" class="w-8 h-8 rounded bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 text-white">+</button>
+                                    <button onclick="app.adjustWindowCount(-1)" class="w-8 h-8 rounded bg-white border border-slate-300 hover:bg-slate-100 text-slate-700">-</button>
+                                    <span id="setting-window-count" class="font-mono font-bold w-6 text-center text-slate-800">3</span>
+                                    <button onclick="app.adjustWindowCount(1)" class="w-8 h-8 rounded bg-white border border-slate-300 hover:bg-slate-100 text-slate-700">+</button>
                                 </div>
                             </div>
 
                             <!-- Window Purposes Config -->
-                            <div class="p-3 bg-zinc-950 rounded-lg border border-zinc-800">
-                                <label class="text-sm text-zinc-300 block mb-2">Counter Assignments</label>
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <label class="text-sm text-slate-600 block mb-2">Counter Assignments</label>
                                 <div id="window-config-list" class="space-y-2">
                                     <!-- Injected by JS -->
                                 </div>
                             </div>
 
                             <!-- PIN Update -->
-                            <div class="flex items-center justify-between p-3 bg-zinc-950 rounded-lg border border-zinc-800">
-                                <label class="text-sm text-zinc-300">Change PIN</label>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <label class="text-sm text-slate-600">Change PIN</label>
                                 <div class="flex gap-2">
-                                    <input type="text" id="new-pin-input" class="w-20 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-white outline-none" placeholder="New PIN">
-                                    <button onclick="app.updatePin()" class="text-xs bg-medical-600 hover:bg-medical-500 text-white px-2 py-1 rounded">Save</button>
+                                    <input type="text" id="new-pin-input" class="w-20 bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-800 outline-none" placeholder="New PIN">
+                                    <button onclick="app.updatePin()" class="text-xs bg-medical-600 hover:bg-medical-700 text-white px-2 py-1 rounded">Save</button>
                                 </div>
                             </div>
 
-                            <!-- Announcements Management -->
-                            <div class="p-3 bg-zinc-950 rounded-lg border border-zinc-800">
-                                <label class="text-sm text-zinc-300 block mb-2 font-bold text-white"><i class="fa-solid fa-bullhorn mr-1"></i> Announcements</label>
-                                
-                                <!-- Active List (Improved Visibility) -->
-                                <div class="mb-3 bg-zinc-900 rounded border border-zinc-700 p-2">
-                                    <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Active Messages</div>
-                                    <div id="active-announcements" class="text-xs space-y-2 max-h-24 overflow-y-auto">
-                                        <div class="text-zinc-600 italic">No active announcements</div>
-                                    </div>
-                                </div>
-
-                                <!-- Post New -->
-                                <div class="space-y-2">
-                                    <input type="text" id="announce-text" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white" placeholder="New message content...">
-                                    <div class="flex gap-2">
-                                        <select id="announce-cat" class="bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white flex-1">
-                                            <option value="Billing">Billing</option>
-                                            <option value="Lab">Lab/Pharmacy</option>
-                                            <option value="General">General</option>
-                                        </select>
-                                        <button onclick="app.addAnnouncement()" class="bg-medical-600 hover:bg-medical-500 text-white px-4 rounded text-xs font-bold transition-colors">Post</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button onclick="app.resetQueue()" class="w-full text-red-500 hover:text-red-400 text-xs text-center border border-red-900/30 p-2 rounded hover:bg-red-900/10">Reset Daily Queue Data</button>
+                            <button onclick="app.resetQueue()" class="w-full text-red-600 hover:text-red-700 text-xs text-center border border-red-200 p-2 rounded hover:bg-red-50">Reset Daily Queue Data</button>
                         </div>
                     </div>
                 </div>
@@ -440,31 +423,64 @@
                 <!-- Main Admin Layout -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow min-h-0">
                     
-                    <!-- Left: Counters (Scrollable) -->
-                    <div class="lg:col-span-2 flex flex-col min-h-0">
-                        <div id="admin-counters-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-4">
-                            <!-- Counters injected by JS -->
+                    <!-- Left Column (Stack) -->
+                    <div class="lg:col-span-2 flex flex-col gap-4 min-h-0">
+                        <!-- Counters Area -->
+                        <div class="flex-grow min-h-0 flex flex-col">
+                            <h3 class="font-bold text-slate-500 text-sm mb-2 px-1">Active Stations</h3>
+                            <div id="admin-counters-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2">
+                                <!-- Counters injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Announcement Area (Bottom) -->
+                        <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-md flex-none h-48">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="font-bold text-slate-600 text-xs flex items-center gap-2"><i class="fa-solid fa-bullhorn text-medical-600"></i> Announcements</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full pb-6">
+                                <!-- Active List -->
+                                <div class="border-r border-slate-200 pr-4 flex flex-col min-h-0">
+                                    <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">Active Messages</div>
+                                    <div id="admin-announcements-list" class="space-y-2 overflow-y-auto pr-1 flex-grow">
+                                        <!-- List items -->
+                                    </div>
+                                </div>
+                                <!-- Form -->
+                                <div class="flex flex-col h-full">
+                                    <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">Post New</div>
+                                    <textarea id="announce-text" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs text-slate-800 mb-2 focus:border-medical-500 outline-none resize-none flex-grow" placeholder="Type here..."></textarea>
+                                    <div class="flex gap-2 mt-auto">
+                                        <select id="announce-cat" class="bg-slate-50 border border-slate-300 rounded-lg p-1.5 text-xs text-slate-700 flex-1 outline-none">
+                                            <option value="Billing">Billing</option>
+                                            <option value="Lab">Lab/Pharmacy</option>
+                                            <option value="General">General</option>
+                                        </select>
+                                        <button onclick="app.addAnnouncement()" class="bg-medical-600 hover:bg-medical-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Post</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Right: Queue List -->
-                    <div class="bg-zinc-900 rounded-xl border border-zinc-800 flex flex-col overflow-hidden h-full shadow-lg">
-                        <div class="p-3 bg-zinc-950 border-b border-zinc-800 flex justify-between items-center">
-                            <h3 class="font-bold text-zinc-300 text-sm"><i class="fa-solid fa-users"></i> Queue List</h3>
-                            <span class="text-xs bg-medical-900/20 text-medical-400 border border-medical-900/50 px-2 py-0.5 rounded" id="admin-queue-count">0</span>
+                    <div class="bg-white rounded-xl border border-slate-200 flex flex-col overflow-hidden h-full shadow-md">
+                        <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <h3 class="font-bold text-slate-600 text-sm"><i class="fa-solid fa-users"></i> Queue List</h3>
+                            <span class="text-xs bg-medical-50 text-medical-700 border border-medical-200 px-2 py-0.5 rounded" id="admin-queue-count">0</span>
                         </div>
                         <div class="flex-grow overflow-auto p-0">
                             <table class="w-full text-left text-sm">
-                                <thead class="bg-zinc-900 text-zinc-500 text-xs sticky top-0 shadow-sm z-10">
+                                <thead class="bg-slate-50 text-slate-500 text-xs sticky top-0 shadow-sm z-10 border-b border-slate-200">
                                     <tr>
                                         <th class="p-3 font-semibold">Name</th>
                                         <th class="p-3 font-semibold">Purpose</th>
                                         <th class="p-3 font-semibold text-right">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="admin-queue-list" class="divide-y divide-zinc-800"></tbody>
+                                <tbody id="admin-queue-list" class="divide-y divide-slate-100"></tbody>
                             </table>
-                            <div id="admin-empty-state" class="hidden h-32 flex flex-col items-center justify-center text-zinc-600">
+                            <div id="admin-empty-state" class="hidden h-32 flex flex-col items-center justify-center text-slate-400">
                                 <i class="fa-solid fa-check-circle text-2xl mb-2 opacity-30"></i>
                                 <p class="text-xs">No pending visitors</p>
                             </div>
@@ -477,8 +493,8 @@
     </main>
 
     <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-6 right-6 translate-y-24 opacity-0 transition-all duration-300 bg-zinc-800 text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 z-50 border border-zinc-700 max-w-sm">
-        <div class="bg-medical-900/50 p-1.5 rounded text-medical-400"><i class="fa-solid fa-bell"></i></div>
+    <div id="toast" class="fixed bottom-6 right-6 translate-y-24 opacity-0 transition-all duration-300 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 z-50 border border-slate-700 max-w-sm">
+        <div class="bg-medical-600 p-1.5 rounded text-white"><i class="fa-solid fa-bell"></i></div>
         <span id="toast-msg" class="text-sm font-medium">Notification</span>
     </div>
 
@@ -522,7 +538,6 @@
             currentView: 'home',
             audioEnabled: false,
             purposes: ["Check-up", "Billing", "Laboratory", "Pharmacy", "Emergency", "Others"],
-            // New Sub-purposes
             subPurposes: {
                 "Check-up": ["General", "Pedia", "OB-GYN", "Dental", "Optical", "Specialist"],
                 "Billing": ["Cashier", "HMO", "PhilHealth", "Billing Inquiry"],
@@ -544,8 +559,6 @@
                 if (target) {
                     target.style.display = 'block';
                     setTimeout(() => target.classList.add('active'), 10);
-                    
-                    // Render Kiosk Purposes on load
                     if(viewId === 'kiosk') app.renderKioskPurposes();
                 }
                 state.currentView = viewId;
@@ -557,33 +570,29 @@
                 container.innerHTML = '';
                 state.purposes.forEach(p => {
                     container.insertAdjacentHTML('beforeend', `
-                        <button type="button" class="purpose-btn p-3 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 hover:border-medical-500/50 text-zinc-300 text-sm font-medium transition-all text-center" 
+                        <button type="button" class="purpose-btn p-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 hover:border-medical-300 text-slate-600 text-sm font-medium transition-all text-center" 
                             data-value="${p}" onclick="app.selectPurpose(this)">${p}</button>
                     `);
                 });
-                // Default select first
                 const first = container.querySelector('button');
                 if(first) first.click();
             },
 
             selectPurpose: (btn) => {
-                // UI Reset Main Buttons
                 document.querySelectorAll('.purpose-btn').forEach(b => {
-                    b.classList.remove('bg-zinc-800', 'border-medical-500', 'text-medical-400', 'ring-1', 'ring-medical-900');
-                    b.classList.add('bg-zinc-950', 'border-zinc-700', 'text-zinc-300');
+                    b.classList.remove('bg-medical-50', 'border-medical-500', 'text-medical-700', 'ring-1', 'ring-medical-500');
+                    b.classList.add('bg-white', 'border-slate-300', 'text-slate-600');
                 });
-                btn.classList.remove('bg-zinc-950', 'border-zinc-700', 'text-zinc-300');
-                btn.classList.add('bg-zinc-800', 'border-medical-500', 'text-medical-400', 'ring-1', 'ring-medical-900');
+                btn.classList.remove('bg-white', 'border-slate-300', 'text-slate-600');
+                btn.classList.add('bg-medical-50', 'border-medical-500', 'text-medical-700', 'ring-1', 'ring-medical-500');
                 
                 const val = btn.dataset.value;
                 document.getElementById('selected-purpose').value = val;
 
-                // Handle Sub Purposes
                 const subContainer = document.getElementById('sub-purpose-section');
                 const subList = document.getElementById('sub-purpose-list');
                 const otherContainer = document.getElementById('other-reason-container');
                 
-                // Clear subs
                 subList.innerHTML = '';
                 document.getElementById('selected-sub-purpose').value = '';
 
@@ -598,11 +607,10 @@
                         subContainer.classList.remove('hidden');
                         subs.forEach(sub => {
                             subList.insertAdjacentHTML('beforeend', `
-                                <button type="button" class="sub-purpose-btn p-2 rounded border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium transition-all text-center"
+                                <button type="button" class="sub-purpose-btn p-2 rounded border border-slate-300 bg-white hover:bg-slate-50 text-slate-500 text-xs font-medium transition-all text-center"
                                     data-value="${sub}" onclick="app.selectSubPurpose(this)">${sub}</button>
                             `);
                         });
-                        // Auto-click first sub to ensure a value is set? No, let user choose.
                     } else {
                         subContainer.classList.add('hidden');
                     }
@@ -611,11 +619,11 @@
 
             selectSubPurpose: (btn) => {
                 document.querySelectorAll('.sub-purpose-btn').forEach(b => {
-                    b.classList.remove('bg-medical-900/30', 'border-medical-500', 'text-white');
-                    b.classList.add('bg-zinc-900', 'border-zinc-700', 'text-zinc-400');
+                    b.classList.remove('bg-medical-600', 'border-medical-600', 'text-white');
+                    b.classList.add('bg-white', 'border-slate-300', 'text-slate-500');
                 });
-                btn.classList.remove('bg-zinc-900', 'border-zinc-700', 'text-zinc-400');
-                btn.classList.add('bg-medical-900/30', 'border-medical-500', 'text-white');
+                btn.classList.remove('bg-white', 'border-slate-300', 'text-slate-500');
+                btn.classList.add('bg-medical-600', 'border-medical-600', 'text-white');
                 document.getElementById('selected-sub-purpose').value = btn.dataset.value;
             },
 
@@ -627,7 +635,6 @@
 
                 if (!name) { app.showToast("Please enter visitor name"); return; }
                 
-                // Validate Sub Purpose / Others
                 if (purpose === 'Others') {
                     const customReason = document.getElementById('other-reason-input').value.trim();
                     if (!customReason) {
@@ -636,9 +643,8 @@
                         return;
                     }
                     purpose = "Others"; 
-                    subPurpose = customReason; // Treat custom text as sub-purpose for display
+                    subPurpose = customReason; 
                 } else {
-                    // Check if sub-purpose is required (if subs exist for this category)
                     if (state.subPurposes[purpose] && !subPurpose) {
                         app.showToast(`Please select a specific ${purpose} service`);
                         return;
@@ -658,7 +664,7 @@
                         name: name, 
                         studentId: pId,
                         purpose: purpose, 
-                        subPurpose: subPurpose, // New Field
+                        subPurpose: subPurpose, 
                         status: 'waiting', 
                         skipCount: 0, 
                         alarmPlaying: false, 
@@ -668,9 +674,7 @@
                     const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config');
                     await updateDoc(settingsRef, { lastTicket: newTicketNum });
 
-                    // UI Success
                     document.getElementById('ticket-name-display').textContent = name;
-                    // Display composite purpose
                     let displayPurpose = purpose;
                     if(subPurpose) displayPurpose += ` - ${subPurpose}`;
                     document.getElementById('ticket-purpose-display').textContent = displayPurpose;
@@ -693,14 +697,12 @@
                 document.getElementById('other-reason-container').classList.add('hidden');
                 document.getElementById('sub-purpose-section').classList.add('hidden');
                 
-                // Reset main buttons
                 app.renderKioskPurposes(); 
 
                 document.getElementById('kiosk-form-container').classList.remove('hidden');
                 document.getElementById('ticket-success').classList.add('hidden');
             },
 
-            // --- Admin & Logic ---
             verifyPin: () => {
                 if (document.getElementById('admin-pin-input').value === state.settings.adminPin) {
                     document.getElementById('pin-error').classList.add('hidden');
@@ -754,7 +756,6 @@
                 } catch(e) { console.error(e); }
             },
 
-            // Announcement Logic
             addAnnouncement: async () => {
                 const content = document.getElementById('announce-text').value;
                 const cat = document.getElementById('announce-cat').value;
@@ -772,12 +773,10 @@
                 }
             },
 
-            // --- Queue Operations ---
             callNextForWindow: async (windowNum) => {
                 const config = state.settings.windowConfigs?.[windowNum] || ['All'];
                 const allowed = config.includes('All') ? null : config;
 
-                // Find oldest waiting ticket that matches criteria (Main Purpose)
                 const nextItem = state.queue.find(item => {
                     if (item.status !== 'waiting') return false;
                     if (!allowed) return true; 
@@ -811,7 +810,6 @@
                 if(confirm("Remove from queue?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id));
             },
 
-            // Audio Logic
             enableAudio: () => {
                 state.audioEnabled = true;
                 const audio = document.getElementById('bell-sound');
@@ -835,7 +833,6 @@
             }
         };
 
-        // --- Render Helpers ---
         function renderWindowConfigs() {
             const container = document.getElementById('window-config-list');
             container.innerHTML = '';
@@ -847,9 +844,9 @@
                 });
 
                 container.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center justify-between text-xs text-zinc-400">
+                    <div class="flex items-center justify-between text-xs text-slate-500">
                         <span>Window ${i}</span>
-                        <select onchange="app.saveWindowConfig(${i}, this)" class="bg-zinc-900 border border-zinc-700 rounded p-1 text-white">
+                        <select onchange="app.saveWindowConfig(${i}, this)" class="bg-white border border-slate-300 rounded p-1 text-slate-700">
                             ${options}
                         </select>
                     </div>
@@ -862,10 +859,8 @@
             const serving = state.queue.filter(i => i.status === 'serving');
             const completed = state.queue.filter(i => i.status === 'completed');
 
-            // Audio
             app.manageAudioLoop(serving.some(i => i.alarmPlaying));
 
-            // Admin Logic
             document.getElementById('admin-total-served').innerText = `Served: ${completed.length}`;
             document.getElementById('admin-queue-count').innerText = waiting.length;
             
@@ -882,26 +877,26 @@
                     if(ticket.subPurpose) displayPurpose += ` (${ticket.subPurpose})`;
 
                     adminCounters.insertAdjacentHTML('beforeend', `
-                        <div class="bg-zinc-950 border border-medical-900/30 p-3 rounded-xl">
+                        <div class="bg-white border border-medical-500 p-3 rounded-xl shadow-sm">
                             <div class="flex justify-between items-start mb-2">
                                 <div>
-                                    <div class="text-[10px] font-bold text-medical-500 uppercase">Station ${i} (${role})</div>
-                                    <div class="text-lg font-black text-white truncate w-32">${ticket.name}</div>
-                                    <div class="text-[10px] text-zinc-400">#${String(ticket.ticketNumber).padStart(3,'0')} • ${displayPurpose}</div>
+                                    <div class="text-[10px] font-bold text-medical-600 uppercase">Station ${i} (${role})</div>
+                                    <div class="text-lg font-black text-slate-800 truncate w-32">${ticket.name}</div>
+                                    <div class="text-[10px] text-slate-500">#${String(ticket.ticketNumber).padStart(3,'0')} • ${displayPurpose}</div>
                                 </div>
-                                <button onclick="app.finishForWindow('${ticket.id}')" class="bg-medical-600 hover:bg-medical-500 text-white px-2 py-1 rounded text-xs font-bold">Done</button>
+                                <button onclick="app.finishForWindow('${ticket.id}')" class="bg-medical-600 hover:bg-medical-700 text-white px-2 py-1 rounded text-xs font-bold">Done</button>
                             </div>
-                            <button onclick="app.stopAlarm('${ticket.id}')" class="w-full ${isAlarm ? 'bg-red-500 hover:bg-red-400 animate-pulse text-white' : 'bg-zinc-800 text-zinc-500'} py-1.5 rounded text-xs font-bold transition-all" ${!isAlarm ? 'disabled' : ''}>${isAlarm ? 'Stop Calling' : 'Calling...'}</button>
+                            <button onclick="app.stopAlarm('${ticket.id}')" class="w-full ${isAlarm ? 'bg-red-500 hover:bg-red-600 animate-pulse text-white' : 'bg-slate-100 text-slate-500'} py-1.5 rounded text-xs font-bold transition-all" ${!isAlarm ? 'disabled' : ''}>${isAlarm ? 'Stop Calling' : 'Calling...'}</button>
                         </div>
                     `);
                 } else {
                     adminCounters.insertAdjacentHTML('beforeend', `
-                        <div class="bg-zinc-950 border border-zinc-800 p-3 rounded-xl flex flex-col justify-between">
+                        <div class="bg-white border border-slate-200 p-3 rounded-xl flex flex-col justify-between shadow-sm">
                             <div class="mb-2">
-                                <div class="text-[10px] font-bold text-zinc-500 uppercase">Station ${i} (${role})</div>
-                                <div class="text-xs text-zinc-600">Available</div>
+                                <div class="text-[10px] font-bold text-slate-500 uppercase">Station ${i} (${role})</div>
+                                <div class="text-xs text-slate-600">Available</div>
                             </div>
-                            <button onclick="app.callNextForWindow(${i})" class="bg-zinc-800 hover:bg-zinc-700 text-white w-full py-1.5 rounded text-xs font-bold flex items-center justify-center gap-2">Call Next <i class="fa-solid fa-bullhorn"></i></button>
+                            <button onclick="app.callNextForWindow(${i})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-full py-1.5 rounded text-xs font-bold flex items-center justify-center gap-2">Call Next <i class="fa-solid fa-bullhorn"></i></button>
                         </div>
                     `);
                 }
@@ -916,13 +911,13 @@
                 adminEmpty.classList.add('hidden');
                 waiting.forEach(item => {
                     let displayPurpose = item.purpose;
-                    if(item.subPurpose) displayPurpose += ` <span class="text-zinc-500 text-[10px]">(${item.subPurpose})</span>`;
+                    if(item.subPurpose) displayPurpose += ` <span class="text-slate-400 text-[10px]">(${item.subPurpose})</span>`;
 
                     adminList.insertAdjacentHTML('beforeend', `
-                        <tr class="hover:bg-zinc-950 border-b border-zinc-800 last:border-0">
-                            <td class="p-3 font-medium text-white">${item.name}</td>
-                            <td class="p-3"><span class="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">${displayPurpose}</span></td>
-                            <td class="p-3 text-right"><button onclick="app.removeTicket('${item.id}')" class="text-zinc-600 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0">
+                            <td class="p-3 font-medium text-slate-800">${item.name}</td>
+                            <td class="p-3"><span class="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">${displayPurpose}</span></td>
+                            <td class="p-3 text-right"><button onclick="app.removeTicket('${item.id}')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
                     `);
                 });
@@ -946,25 +941,24 @@
                 const ticket = serving.find(t => t.window === i);
                 if (ticket) {
                     const isAlarm = ticket.alarmPlaying;
-                    // For monitor card, check sub-purpose length.
                     let purposeText = ticket.purpose;
-                    if(ticket.subPurpose) purposeText = ticket.subPurpose; // Prioritize sub-purpose for visibility? Or concat? Let's use sub if available for specificity.
+                    if(ticket.subPurpose) purposeText = ticket.subPurpose; 
                     
                     monitorGrid.insertAdjacentHTML('beforeend', `
-                        <div class="${isAlarm ? 'bg-red-950 border-red-500 serving-card-animation' : 'bg-medical-900/10 border-medical-500 serving-card-silent'} border-l-4 rounded-xl p-4 relative overflow-hidden flex flex-col justify-between transition-all ${itemHeightClass}">
-                            <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Station ${i}</div>
-                            <div class="text-3xl md:text-4xl font-black text-white leading-tight line-clamp-1">${ticket.name}</div>
-                            <div class="flex justify-between items-end border-t border-white/10 pt-2">
-                                <div class="text-xs font-bold text-medical-400 uppercase truncate max-w-[70%]">${purposeText}</div>
-                                <div class="text-xl font-mono text-white/50">#${String(ticket.ticketNumber).padStart(3,'0')}</div>
+                        <div class="${isAlarm ? 'bg-white border-accent-500 serving-card-animation' : 'bg-white border-medical-600 serving-card-silent'} border-l-4 rounded-xl p-4 relative overflow-hidden flex flex-col justify-between transition-all shadow-md ${itemHeightClass}">
+                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Station ${i}</div>
+                            <div class="text-3xl md:text-4xl font-black text-slate-800 leading-tight line-clamp-1">${ticket.name}</div>
+                            <div class="flex justify-between items-end border-t border-slate-100 pt-2">
+                                <div class="text-xs font-bold text-medical-600 uppercase truncate max-w-[70%]">${purposeText}</div>
+                                <div class="text-xl font-mono text-slate-300">#${String(ticket.ticketNumber).padStart(3,'0')}</div>
                             </div>
                         </div>
                     `);
                 } else {
                     monitorGrid.insertAdjacentHTML('beforeend', `
-                        <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between opacity-50 ${itemHeightClass}">
-                            <div class="text-xs font-bold text-zinc-600 uppercase tracking-widest">Station ${i}</div>
-                            <div class="text-2xl font-bold text-zinc-700 text-center">Available</div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between opacity-50 shadow-sm ${itemHeightClass}">
+                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Station ${i}</div>
+                            <div class="text-2xl font-bold text-slate-300 text-center">Available</div>
                             <div class="h-4"></div>
                         </div>
                     `);
@@ -981,21 +975,21 @@
             
             shownItems.forEach(item => {
                 let purposeDisp = item.purpose;
-                if(item.subPurpose) purposeDisp = item.subPurpose; // Shorten for list
+                if(item.subPurpose) purposeDisp = item.subPurpose;
 
                 monitorList.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center justify-between p-2 bg-zinc-950/50 rounded border border-zinc-800/50">
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200">
                         <div class="flex items-center gap-3 w-3/4">
-                            <div class="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-zinc-500 text-[10px] font-mono">#${String(item.ticketNumber).padStart(3,'0')}</div>
-                            <div class="font-bold text-sm text-zinc-300 truncate">${item.name}</div>
+                            <div class="w-6 h-6 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-mono">#${String(item.ticketNumber).padStart(3,'0')}</div>
+                            <div class="font-bold text-sm text-slate-700 truncate">${item.name}</div>
                         </div>
-                        <div class="text-[10px] font-bold text-medical-500 uppercase text-right truncate w-1/4">${purposeDisp}</div>
+                        <div class="text-[10px] font-bold text-medical-600 uppercase text-right truncate w-1/4">${purposeDisp}</div>
                     </div>
                 `);
             });
             
             if(waiting.length > maxItems) {
-                monitorList.insertAdjacentHTML('beforeend', `<div class="text-center text-xs text-zinc-600 mt-1 italic">+${waiting.length - maxItems} more...</div>`);
+                monitorList.insertAdjacentHTML('beforeend', `<div class="text-center text-xs text-slate-400 mt-1 italic">+${waiting.length - maxItems} more...</div>`);
             }
         }
 
@@ -1003,31 +997,52 @@
             const list = state.announcements;
             const cats = ['Billing', 'Lab', 'General'];
             
+            // Monitor Update
             cats.forEach(cat => {
                 const el = document.getElementById(`announce-${cat.toLowerCase()}`);
                 const items = list.filter(a => a.category === cat || (cat === 'Lab' && a.category === 'Pharmacy')); 
                 if(items.length > 0) {
-                    const latest = items.sort((a,b) => b.timestamp - a.timestamp)[0];
-                    el.innerHTML = `<span class="text-white">${latest.content}</span>`;
+                    const latest = items.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))[0];
+                    let dateStr = "";
+                    if(latest.timestamp) {
+                        const date = latest.timestamp.toDate ? latest.timestamp.toDate() : new Date(latest.timestamp);
+                        dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                    }
+                    
+                    el.innerHTML = `
+                        <div class="flex flex-col h-full justify-between pt-4">
+                            <span class="text-slate-800 text-xs leading-relaxed line-clamp-3">${latest.content}</span>
+                            <span class="text-[10px] text-slate-400 font-mono mt-1 text-right block border-t border-slate-100 pt-1">${dateStr}</span>
+                        </div>`;
                 } else {
-                    el.innerHTML = `<span class="text-zinc-600 italic text-xs">No updates</span>`;
+                    el.innerHTML = `<span class="text-slate-400 italic text-xs block mt-2">No updates</span>`;
                 }
             });
 
-            // Admin list - Improved
-            const adminEl = document.getElementById('active-announcements');
-            if(list.length === 0) {
-                adminEl.innerHTML = `<div class="text-zinc-600 italic text-center py-2">No active announcements</div>`;
-            } else {
-                adminEl.innerHTML = list.map(a => `
-                    <div class="flex justify-between items-center bg-zinc-800/50 p-2 rounded hover:bg-zinc-800 transition-colors">
-                        <div>
-                            <span class="text-[10px] text-zinc-400 uppercase border border-zinc-700 px-1 rounded mr-2">${a.category}</span>
-                            <span class="text-white text-xs">${a.content}</span>
+            // Admin List Update
+            const adminEl = document.getElementById('admin-announcements-list');
+            if(adminEl) {
+                if(list.length === 0) {
+                    adminEl.innerHTML = `<div class="text-slate-400 italic text-xs text-center py-4">No active announcements</div>`;
+                } else {
+                    const sorted = [...list].sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    adminEl.innerHTML = sorted.map(a => {
+                        let dateStr = "";
+                        if(a.timestamp) {
+                            const date = a.timestamp.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
+                            dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                        }
+                        return `
+                        <div class="bg-white border border-slate-200 p-2 rounded-lg group relative shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-[10px] text-slate-500 uppercase font-bold bg-slate-100 px-1.5 rounded border border-slate-200">${a.category}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
+                            </div>
+                            <p class="text-xs text-slate-700 leading-snug pr-6">${a.content}</p>
+                            <button onclick="app.deleteAnnouncement('${a.id}')" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash"></i></button>
                         </div>
-                        <button onclick="app.deleteAnnouncement('${a.id}')" class="text-red-500 hover:text-red-400 px-2"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `).join('');
+                    `}).join('');
+                }
             }
         }
 
@@ -1080,7 +1095,7 @@
             onAuthStateChanged(auth, (user) => {
                 if(user) {
                     document.getElementById('status-text').innerText = "Online";
-                    document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-medical-500 shadow-[0_0_8px_rgba(20,184,166,0.6)]";
+                    document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-accent-400 shadow-[0_0_8px_rgba(163,230,53,0.6)]";
                 }
             });
         }
