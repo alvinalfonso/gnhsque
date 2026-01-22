@@ -38,7 +38,15 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
         
-        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+        /* Enforce fixed full screen layout to prevent cut-offs */
+        html, body { 
+            height: 100vh; 
+            width: 100vw; 
+            overflow: hidden; 
+            margin: 0; 
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
         /* View Management */
@@ -46,8 +54,8 @@
             display: none;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
-            height: 100vh;
-            width: 100vw;
+            height: 100%; /* Fill remaining parent height */
+            width: 100%;
             overflow-y: auto; 
         }
         .view-section.active {
@@ -101,7 +109,7 @@
 <body class="bg-slate-50 text-slate-800 selection:bg-accent-300 selection:text-medical-900">
 
     <!-- Global Header (Fixed) -->
-    <nav class="bg-medical-700 border-b border-medical-800 p-3 shadow-lg fixed top-0 w-full z-50 h-[60px] flex items-center">
+    <nav class="bg-medical-700 border-b border-medical-800 p-3 shadow-lg fixed top-0 left-0 w-full z-[90] h-[60px] flex items-center box-border">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-center px-4">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="app.navigate('home')">
                 <div class="bg-white p-1.5 rounded-lg shadow-lg group-hover:bg-slate-100 transition-colors">
@@ -122,7 +130,7 @@
     </nav>
 
     <!-- Main Container (Offset for fixed header) -->
-    <main class="w-full h-full pt-[60px]">
+    <main class="w-full h-full pt-[60px] box-border relative">
 
         <!-- VIEW: Home / Landing -->
         <div id="view-home" class="view-section active">
@@ -385,7 +393,7 @@
                 </div>
 
                 <!-- Settings Modal (Overlay) -->
-                <div id="admin-settings-panel" class="hidden fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+                <div id="admin-settings-panel" class="hidden fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
                     <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-slate-800">System Configuration</h3>
