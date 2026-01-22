@@ -316,7 +316,7 @@
                 </div>
 
                 <!-- Footer: Announcements -->
-                <div class="flex-none h-32 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-slate-200 z-10 bg-slate-50">
+                <div class="flex-none h-56 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-slate-200 z-10 bg-slate-50">
                     <!-- Billing -->
                     <div class="bg-white rounded-xl border-l-4 border-green-500 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
                         <h4 class="text-[10px] font-bold text-green-600 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-file-invoice-dollar"></i> Billing / Cashier</h4>
@@ -1010,12 +1010,12 @@
                     }
                     
                     el.innerHTML = `
-                        <div class="flex flex-col h-full justify-between pt-4">
-                            <span class="text-slate-800 text-xs leading-relaxed line-clamp-3">${latest.content}</span>
-                            <span class="text-[10px] text-slate-400 font-mono mt-1 text-right block border-t border-slate-100 pt-1">${dateStr}</span>
+                        <div class="flex flex-col h-full pt-5">
+                            <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line flex-grow overflow-hidden">${latest.content}</p>
+                            <span class="text-[10px] text-slate-400 font-mono mt-1 text-right block border-t border-slate-100 pt-1 flex-none">${dateStr}</span>
                         </div>`;
                 } else {
-                    el.innerHTML = `<span class="text-slate-400 italic text-xs block mt-2">No updates</span>`;
+                    el.innerHTML = `<span class="text-slate-400 italic text-xs block mt-6">No updates</span>`;
                 }
             });
 
