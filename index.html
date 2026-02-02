@@ -918,12 +918,13 @@
             },
 
             // --- Queue Logic ---
-            callNextForWindow: async (windowNum) => {
+            callNextForWindow: async (windowNum, excludeId = null, suppressToast = false) => {
                 const config = state.settings.windowConfigs?.[windowNum] || ['All'];
                 const allowed = config.includes('All') ? null : config;
 
                 // Priority: 1. Assigned directly to this window (Transfers), 2. Waiting & Matching Purpose
                 const nextItem = state.queue.find(item => {
+                    if (excludeId && item.id === excludeId) return false;
                     if (item.status !== 'waiting') return false;
                     // Exact match assignment takes priority
                     if (String(item.assignedWindow) === String(windowNum)) return true;
@@ -936,7 +937,7 @@
                 });
 
                 if (!nextItem) { 
-                    app.showToast("No matching visitors"); 
+                    if (!suppressToast) app.showToast("No matching visitors"); 
                     return; 
                 }
 
@@ -960,7 +961,7 @@
             },
 
             // --- New Features: Skip & Transfer ---
-            skipServing: async (id, currentSkipCount) => {
+            skipServing: async (id, currentSkipCount, windowNum) => {
                 const newCount = (currentSkipCount || 0) + 1;
                 const updates = {};
                 
@@ -976,6 +977,12 @@
                 }
                 updates.alarmPlaying = false;
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), updates);
+
+                if (windowNum) {
+                    // Auto call next, excluding the current ticket (in case status update is slightly delayed in local state)
+                    // Pass true to suppress "No matching visitors" toast if empty (vacant)
+                    app.callNextForWindow(windowNum, id, true);
+                }
             },
 
             openTransferModal: (id) => {
@@ -1137,7 +1144,7 @@
                                     </button>
 
                                     <!-- Skip -->
-                                    <button onclick="app.skipServing('${ticket.id}', ${ticket.skipCount || 0})" class="bg-white text-slate-500 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center transition-all" title="Skip (No Show)">
+                                    <button onclick="app.skipServing('${ticket.id}', ${ticket.skipCount || 0}, ${ticket.window})" class="bg-white text-slate-500 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center transition-all" title="Skip (No Show)">
                                         <i class="fa-solid fa-forward"></i>
                                     </button>
                                     
