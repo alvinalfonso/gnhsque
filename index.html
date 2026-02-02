@@ -1107,23 +1107,46 @@
                     if(ticket.transferNote) displayPurpose += `<br><span class="text-amber-600">Note: ${ticket.transferNote}</span>`;
 
                     adminCounters.insertAdjacentHTML('beforeend', `
-                        <div class="bg-white border border-medical-500 p-3 rounded-xl shadow-sm relative overflow-hidden">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <div class="text-[10px] font-bold text-medical-600 uppercase">${winName} (${role})</div>
-                                    <div class="text-lg font-black text-slate-800 truncate w-32">${ticket.name}</div>
-                                    <div class="text-[10px] text-slate-500">#${String(ticket.ticketNumber).padStart(3,'0')} • Skip: ${ticket.skipCount || 0}/3</div>
-                                    <div class="text-[10px] text-slate-500 mt-1">${displayPurpose}</div>
+                        <div class="bg-white border border-medical-500 p-3 rounded-xl shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start">
+                                <div class="min-w-0 pr-2 flex-1">
+                                    <div class="flex items-center gap-1 mb-0.5">
+                                        <span class="text-[10px] font-bold text-medical-600 uppercase">${winName}</span>
+                                        <span class="text-[10px] text-slate-400">(${role})</span>
+                                    </div>
+                                    
+                                    <div class="text-xl font-black text-slate-800 truncate leading-none mb-1" title="${ticket.name}">${ticket.name}</div>
+                                    
+                                    <div class="flex items-center gap-2 text-[10px] text-slate-500 font-mono mb-1">
+                                        <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-bold border border-slate-200">#${String(ticket.ticketNumber).padStart(3,'0')}</span>
+                                        ${ticket.skipCount > 0 ? `<span class="text-orange-600 font-bold bg-orange-50 px-1.5 py-0.5 rounded border border-orange-100">Skip: ${ticket.skipCount}/3</span>` : ''}
+                                    </div>
+                                    
+                                    <div class="text-[10px] text-slate-600 leading-tight line-clamp-2">${displayPurpose}</div>
                                 </div>
-                                <div class="flex flex-col gap-1">
-                                    <button onclick="app.finishForWindow('${ticket.id}')" class="bg-medical-600 hover:bg-medical-700 text-white px-2 py-1 rounded text-xs font-bold">Done</button>
+                                
+                                <div class="flex items-start gap-1">
+                                    <!-- Alarm (Stop Calling) -->
+                                    <button onclick="app.stopAlarm('${ticket.id}')" class="${isAlarm ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-200 border-red-500' : 'bg-slate-50 text-slate-300 border-slate-200'} w-8 h-8 rounded-lg flex items-center justify-center border transition-all" title="${isAlarm ? 'Stop Calling' : 'Not Calling'}" ${!isAlarm ? 'disabled' : ''}>
+                                        <i class="fa-solid fa-bell${!isAlarm ? '-slash' : ''}"></i>
+                                    </button>
+
+                                    <!-- Transfer -->
+                                    <button onclick="app.openTransferModal('${ticket.id}')" class="bg-white text-slate-500 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center transition-all" title="Transfer Customer">
+                                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                    </button>
+
+                                    <!-- Skip -->
+                                    <button onclick="app.skipServing('${ticket.id}', ${ticket.skipCount || 0})" class="bg-white text-slate-500 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center transition-all" title="Skip (No Show)">
+                                        <i class="fa-solid fa-forward"></i>
+                                    </button>
+                                    
+                                    <!-- Done -->
+                                    <button onclick="app.finishForWindow('${ticket.id}')" class="bg-medical-600 hover:bg-medical-700 text-white w-8 h-8 rounded-lg flex items-center justify-center shadow-md shadow-medical-200/50 transition-all active:scale-95 ml-1" title="Mark as Done">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button onclick="app.skipServing('${ticket.id}', ${ticket.skipCount || 0})" class="bg-orange-100 text-orange-700 hover:bg-orange-200 py-1 rounded text-xs font-bold">No Show (Skip)</button>
-                                <button onclick="app.openTransferModal('${ticket.id}')" class="bg-amber-100 text-amber-700 hover:bg-amber-200 py-1 rounded text-xs font-bold">Transfer</button>
-                            </div>
-                             <button onclick="app.stopAlarm('${ticket.id}')" class="w-full mt-2 ${isAlarm ? 'bg-red-500 hover:bg-red-600 animate-pulse text-white' : 'bg-slate-100 text-slate-500'} py-1 rounded text-xs font-bold transition-all" ${!isAlarm ? 'disabled' : ''}>${isAlarm ? 'Stop Calling' : 'Calling...'}</button>
                         </div>
                     `);
                 } else {
