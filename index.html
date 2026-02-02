@@ -38,7 +38,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
         
-        /* Enforce fixed full screen layout to prevent cut-offs */
+        /* Enforce fixed full screen layout */
         html, body { 
             height: 100vh; 
             width: 100vw; 
@@ -54,7 +54,7 @@
             display: none;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
-            height: 100%; /* Fill remaining parent height */
+            height: 100%; 
             width: 100%;
             overflow-y: auto; 
         }
@@ -70,16 +70,16 @@
 
         /* Animations */
         @keyframes pulse-ring {
-            0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(132, 204, 22, 0.7); } /* Lime shadow */
+            0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(132, 204, 22, 0.7); } 
             70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(132, 204, 22, 0); }
             100% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(132, 204, 22, 0); }
         }
         .serving-card-animation {
             animation: pulse-ring 1.5s infinite;
-            border-color: #84cc16; /* accent-500 */
+            border-color: #84cc16; 
         }
         .serving-card-silent {
-            border-color: #059669; /* medical-600 */
+            border-color: #059669; 
             box-shadow: 0 0 15px -3px rgba(5, 150, 105, 0.2);
         }
 
@@ -99,17 +99,37 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Custom Scrollbar (Light Theme) */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            #printable-ticket, #printable-ticket * { visibility: visible; }
+            #printable-ticket {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                margin: 0;
+                padding: 20px;
+                background: white;
+                color: black;
+                border: none;
+                box-shadow: none;
+            }
+            #kiosk-actions { display: none; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 selection:bg-accent-300 selection:text-medical-900">
 
     <!-- Global Header (Fixed) -->
-    <nav class="bg-medical-700 border-b border-medical-800 p-3 shadow-lg fixed top-0 left-0 w-full z-[90] h-[60px] flex items-center box-border">
+    <nav class="bg-medical-700 border-b border-medical-800 p-3 shadow-lg fixed top-0 left-0 w-full z-[90] h-[60px] flex items-center box-border no-print">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-center px-4">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="app.navigate('home')">
                 <div class="bg-white p-1.5 rounded-lg shadow-lg group-hover:bg-slate-100 transition-colors">
@@ -129,14 +149,14 @@
         </div>
     </nav>
 
-    <!-- Main Container (Offset for fixed header) -->
+    <!-- Main Container -->
     <main class="w-full h-full pt-[60px] box-border relative">
 
         <!-- VIEW: Home / Landing -->
         <div id="view-home" class="view-section active">
             <div class="max-w-7xl mx-auto p-6 mt-10">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Card 1: Kiosk -->
+                    <!-- Kiosk -->
                     <button onclick="app.navigate('kiosk')" class="group p-8 bg-white rounded-2xl shadow-sm hover:shadow-xl hover:border-medical-500 transition-all border border-slate-200 text-left relative overflow-hidden h-64 flex flex-col justify-end">
                         <div class="absolute top-4 right-4 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                             <i class="fa-solid fa-ticket text-8xl text-medical-600"></i>
@@ -148,7 +168,7 @@
                         <p class="text-slate-500 text-sm group-hover:text-slate-600">Get a queue number</p>
                     </button>
 
-                    <!-- Card 2: Monitor -->
+                    <!-- Monitor -->
                     <button onclick="app.navigate('monitor')" class="group p-8 bg-white rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-500 transition-all border border-slate-200 text-left relative overflow-hidden h-64 flex flex-col justify-end">
                         <div class="absolute top-4 right-4 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                             <i class="fa-solid fa-tv text-8xl text-blue-600"></i>
@@ -160,7 +180,7 @@
                         <p class="text-slate-500 text-sm group-hover:text-slate-600">Public waiting area display</p>
                     </button>
 
-                    <!-- Card 3: Admin -->
+                    <!-- Admin -->
                     <button onclick="app.navigate('admin-login')" class="group p-8 bg-white rounded-2xl shadow-sm hover:shadow-xl hover:border-slate-400 transition-all border border-slate-200 text-left relative overflow-hidden h-64 flex flex-col justify-end">
                         <div class="absolute top-4 right-4 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                             <i class="fa-solid fa-user-doctor text-8xl text-slate-600"></i>
@@ -194,30 +214,19 @@
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Patient Name (Optional)</label>
                                     <input type="text" id="patient-actual-name" class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 focus:border-medical-500 outline-none transition-all placeholder-slate-400" placeholder="If different from visitor" autocomplete="off">
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ID / Case No. (Optional)</label>
-                                    <input type="text" id="patient-id" class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 outline-none transition-all placeholder-slate-400" placeholder="e.g. OP-2024-001">
-                                </div>
                                 
-                                <!-- Main Purpose -->
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Primary Purpose</label>
-                                    <div class="grid grid-cols-2 gap-2" id="main-purpose-list">
-                                        <!-- Injected by JS -->
-                                    </div>
+                                    <div class="grid grid-cols-2 gap-2" id="main-purpose-list"></div>
                                     <input type="hidden" id="selected-purpose" value="Check-up">
                                 </div>
 
-                                <!-- Sub Purpose Area (Dynamic) -->
                                 <div id="sub-purpose-section" class="hidden animate-slide-in">
                                     <label class="block text-xs font-bold text-medical-600 uppercase mb-2">Specific Service</label>
-                                    <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200" id="sub-purpose-list">
-                                        <!-- Injected by JS -->
-                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200" id="sub-purpose-list"></div>
                                     <input type="hidden" id="selected-sub-purpose" value="">
                                 </div>
                                 
-                                <!-- Custom Reason Input for 'Others' -->
                                 <div id="other-reason-container" class="hidden animate-slide-in">
                                     <label class="block text-xs font-bold text-medical-600 uppercase mb-1">Please specify reason</label>
                                     <input type="text" id="other-reason-input" class="w-full p-3 bg-slate-100 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 outline-none" placeholder="e.g. Medical Certificate">
@@ -225,23 +234,23 @@
 
                             </div>
                             <button onclick="app.getTicket()" id="btn-get-ticket" class="w-full mt-6 bg-medical-600 hover:bg-medical-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-medical-500/30 active:scale-95 flex items-center justify-center gap-2">
-                                <span>Print Ticket</span>
-                                <i class="fa-solid fa-print"></i>
+                                <span id="btn-text-print">Print Ticket</span>
+                                <i class="fa-solid fa-print" id="btn-icon-print"></i>
                             </button>
                         </div>
 
-                        <!-- Ticket Success -->
+                        <!-- Ticket Success (Printable) -->
                         <div id="ticket-success" class="hidden text-center space-y-6 animate-slide-in">
-                            <div class="w-16 h-16 bg-medical-50 text-medical-600 border border-medical-200 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                            <div class="no-print w-16 h-16 bg-medical-50 text-medical-600 border border-medical-200 rounded-full flex items-center justify-center mx-auto shadow-inner">
                                 <i class="fa-solid fa-check text-2xl"></i>
                             </div>
-                            <div>
-                                <h3 class="text-xl font-bold text-slate-800 mb-1">Ticket Generated</h3>
-                                <div class="text-3xl font-black text-medical-600 break-words px-4" id="ticket-name-display">Name</div>
-                                <div class="text-sm text-slate-500 mt-1" id="ticket-patient-display"></div>
-                                <div class="text-sm font-bold text-slate-700 mt-1" id="ticket-purpose-display">Purpose</div>
-                            </div>
-                            <div class="bg-white text-black p-4 rounded-xl border-t-4 border-medical-500 relative mx-4 shadow-xl border-x border-b border-slate-100">
+                            
+                            <!-- Printable Area -->
+                            <div id="printable-ticket" class="bg-white text-black p-4 rounded-xl border-t-4 border-medical-500 relative mx-4 shadow-xl border-x border-b border-slate-100">
+                                <div class="text-center mb-4">
+                                    <p class="text-xs font-bold text-slate-600 uppercase">Pampanga Medical Specialist Hospital</p>
+                                    <p class="text-[10px] text-slate-400">Queueing System</p>
+                                </div>
                                 <div class="flex justify-between items-center border-b-2 border-dashed border-slate-300 pb-3 mb-3">
                                     <div class="text-left">
                                         <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Queue No.</div>
@@ -252,17 +261,22 @@
                                         <div class="text-xl font-bold text-slate-800" id="ticket-time">--:--</div>
                                     </div>
                                 </div>
-                                <div class="text-center">
-                                    <p class="text-xs font-bold text-slate-600 uppercase">Pampanga Medical Specialist Hospital</p>
-                                    <p class="text-[10px] text-slate-400">Please wait for your number</p>
+                                <div class="text-center space-y-1">
+                                    <div class="text-lg font-bold text-medical-700 break-words" id="ticket-name-display">Name</div>
+                                    <div class="text-xs text-slate-500" id="ticket-patient-display"></div>
+                                    <div class="text-sm font-bold text-slate-800 bg-slate-100 inline-block px-2 py-1 rounded mt-1" id="ticket-purpose-display">Purpose</div>
                                 </div>
-                                <!-- Cutout Circles -->
-                                <div class="absolute top-1/2 -left-2 w-4 h-4 bg-slate-50 rounded-full shadow-inner"></div>
-                                <div class="absolute top-1/2 -right-2 w-4 h-4 bg-slate-50 rounded-full shadow-inner"></div>
+                                <div class="mt-4 text-[10px] text-slate-400 text-center italic">Please wait for your number to be called.</div>
                             </div>
-                            <button onclick="app.resetKiosk()" class="text-medical-600 hover:text-medical-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-100 transition-colors text-sm">
-                                Check-in Another Visitor
-                            </button>
+
+                            <div id="kiosk-actions" class="flex flex-col gap-2">
+                                <button onclick="window.print()" id="retry-print-btn" class="hidden w-full bg-slate-800 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors text-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-print"></i> Print Again
+                                </button>
+                                <button onclick="app.resetKiosk()" class="w-full text-medical-600 hover:text-medical-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-100 transition-colors text-sm">
+                                    Check-in Another Visitor
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -272,12 +286,9 @@
             </div>
         </div>
 
-        <!-- VIEW: Live Monitor (Non-scrollable) -->
+        <!-- VIEW: Monitor -->
         <div id="view-monitor" class="view-section">
-            <!-- Full Height Container -->
             <div class="h-full flex flex-col relative px-6 pb-2"> 
-                
-                <!-- Monitor Header -->
                 <div class="flex-none flex justify-between items-center mb-2 py-2 border-b border-slate-200">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-hospital text-3xl text-medical-600"></i>
@@ -292,64 +303,36 @@
                     </div>
                 </div>
 
-                <!-- Main Content Grid -->
                 <div class="flex-grow grid grid-cols-12 gap-4 overflow-hidden min-h-0 relative">
-                    
-                    <!-- Left: Windows (Dynamic Grid) -->
                     <div class="col-span-8 flex flex-col h-full overflow-hidden">
                         <div class="text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-2"><div class="w-2 h-2 bg-accent-500 rounded-full animate-pulse"></div> Now Serving</div>
-                        
-                        <!-- Windows Container: Flex wrap or Grid auto-fit -->
-                        <div id="monitor-windows-grid" class="flex-grow grid gap-3 content-start">
-                            <!-- Injected JS -->
-                        </div>
-
-                        <!-- Hidden Audio Button -->
+                        <div id="monitor-windows-grid" class="flex-grow grid gap-3 content-start"></div>
                         <div id="monitor-audio-enable" class="mt-1 text-center h-4">
-                            <button onclick="app.enableAudio()" class="text-[10px] text-slate-500 hover:text-medical-600">
-                                <i class="fa-solid fa-volume-high"></i> Enable Audio
-                            </button>
+                            <button onclick="app.enableAudio()" class="text-[10px] text-slate-500 hover:text-medical-600"><i class="fa-solid fa-volume-high"></i> Enable Audio</button>
                         </div>
                     </div>
 
-                    <!-- Right: Waiting List -->
                     <div class="col-span-4 flex flex-col h-full overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-md">
                         <div class="flex-none p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                            <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
-                                <i class="fa-solid fa-list-ol text-medical-600"></i> Next in Queue
-                            </h3>
+                            <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2"><i class="fa-solid fa-list-ol text-medical-600"></i> Next in Queue</h3>
                             <span class="text-xs bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-500" id="monitor-total-waiting">0 Waiting</span>
                         </div>
-                        
-                        <!-- Waiting Items -->
-                        <div id="monitor-list" class="flex-grow flex flex-col p-2 gap-1 overflow-hidden">
-                            <!-- Items injected here -->
-                        </div>
+                        <div id="monitor-list" class="flex-grow flex flex-col p-2 gap-1 overflow-hidden"></div>
                     </div>
                 </div>
 
-                <!-- Footer: Announcements -->
                 <div class="flex-none h-72 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-slate-200 z-10 bg-slate-50">
-                    <!-- Billing -->
                     <div class="bg-white rounded-xl border-l-4 border-green-500 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
                         <h4 class="text-[10px] font-bold text-green-600 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-file-invoice-dollar"></i> Billing / Cashier</h4>
-                        <div id="announce-billing" class="text-sm text-slate-600 font-medium h-full pt-4">
-                            <span class="text-slate-400 italic text-xs block mt-2">No updates</span>
-                        </div>
+                        <div id="announce-billing" class="text-sm text-slate-600 font-medium h-full pt-4"><span class="text-slate-400 italic text-xs block mt-2">No updates</span></div>
                     </div>
-                    <!-- Lab/Pharmacy -->
                     <div class="bg-white rounded-xl border-l-4 border-blue-500 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
                         <h4 class="text-[10px] font-bold text-blue-600 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-flask"></i> Lab & Pharmacy</h4>
-                        <div id="announce-lab" class="text-sm text-slate-600 font-medium h-full pt-4">
-                            <span class="text-slate-400 italic text-xs block mt-2">No updates</span>
-                        </div>
+                        <div id="announce-lab" class="text-sm text-slate-600 font-medium h-full pt-4"><span class="text-slate-400 italic text-xs block mt-2">No updates</span></div>
                     </div>
-                    <!-- General -->
                     <div class="bg-white rounded-xl border-l-4 border-slate-400 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
                         <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-bullhorn"></i> General Info</h4>
-                        <div id="announce-general" class="text-sm text-slate-600 font-medium h-full pt-4">
-                            <span class="text-slate-400 italic text-xs block mt-2">No updates</span>
-                        </div>
+                        <div id="announce-general" class="text-sm text-slate-600 font-medium h-full pt-4"><span class="text-slate-400 italic text-xs block mt-2">No updates</span></div>
                     </div>
                 </div>
             </div>
@@ -377,7 +360,7 @@
         <!-- VIEW: Admin Dashboard -->
         <div id="view-admin-dashboard" class="view-section">
             <div class="max-w-7xl mx-auto p-4 md:p-6 h-full flex flex-col">
-                <!-- Dashboard Header -->
+                <!-- Header -->
                 <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Station Control</h2>
@@ -392,16 +375,26 @@
                     </div>
                 </div>
 
-                <!-- Settings Modal (Overlay) -->
+                <!-- Settings Modal -->
                 <div id="admin-settings-panel" class="hidden fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
                     <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-slate-800">System Configuration</h3>
                             <button onclick="app.toggleSettings()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
                         </div>
-                        
                         <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                            <!-- Window Count -->
+                            <!-- Printer Toggle -->
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <div>
+                                    <label class="text-sm text-slate-700 font-bold block">Physical Ticket Printing</label>
+                                    <p class="text-[10px] text-slate-500">Enable print dialog on visitor kiosk</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="setting-print-toggle" class="sr-only peer" onchange="app.togglePrinting(this.checked)">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-medical-600"></div>
+                                </label>
+                            </div>
+
                             <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <label class="text-sm text-slate-600">Active Counters</label>
                                 <div class="flex items-center gap-2">
@@ -410,16 +403,10 @@
                                     <button onclick="app.adjustWindowCount(1)" class="w-8 h-8 rounded bg-white border border-slate-300 hover:bg-slate-100 text-slate-700">+</button>
                                 </div>
                             </div>
-
-                            <!-- Window Purposes Config -->
                             <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <label class="text-sm text-slate-600 block mb-2">Counter Assignments & Naming</label>
-                                <div id="window-config-list" class="space-y-2">
-                                    <!-- Injected by JS -->
-                                </div>
+                                <div id="window-config-list" class="space-y-2"></div>
                             </div>
-
-                            <!-- PIN Update -->
                             <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <label class="text-sm text-slate-600">Change PIN</label>
                                 <div class="flex gap-2">
@@ -427,39 +414,51 @@
                                     <button onclick="app.updatePin()" class="text-xs bg-medical-600 hover:bg-medical-700 text-white px-2 py-1 rounded">Save</button>
                                 </div>
                             </div>
-
                             <button onclick="app.resetQueue()" class="w-full text-red-600 hover:text-red-700 text-xs text-center border border-red-200 p-2 rounded hover:bg-red-50">Reset Daily Queue Data</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Main Admin Layout -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow min-h-0">
-                    
-                    <!-- Left Column (Stack) -->
-                    <div class="lg:col-span-2 flex flex-col gap-4 min-h-0">
-                        <!-- Counters Area -->
-                        <div class="flex-grow min-h-0 flex flex-col">
-                            <h3 class="font-bold text-slate-500 text-sm mb-2 px-1">Active Stations</h3>
-                            <div id="admin-counters-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2">
-                                <!-- Counters injected by JS -->
+                <!-- Transfer Modal -->
+                <div id="transfer-modal" class="hidden fixed inset-0 bg-slate-900/50 z-[110] flex items-center justify-center p-4">
+                    <div class="bg-white w-full max-w-sm rounded-2xl border border-slate-200 shadow-2xl p-6">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-arrow-right-arrow-left text-amber-500"></i> Transfer Customer</h3>
+                        <input type="hidden" id="transfer-ticket-id">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Transfer To Station</label>
+                                <select id="transfer-target-window" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 outline-none focus:border-medical-500"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Reason / Note</label>
+                                <textarea id="transfer-note" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 outline-none focus:border-medical-500 resize-none h-20" placeholder="e.g. Needs Lab clearance"></textarea>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <button onclick="document.getElementById('transfer-modal').classList.add('hidden')" class="flex-1 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-sm border border-slate-200">Cancel</button>
+                                <button onclick="app.confirmTransfer()" class="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-sm shadow-md">Transfer</button>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Announcement Area (Bottom) -->
+                <!-- Main Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow min-h-0">
+                    <!-- Left: Counters & Announcements -->
+                    <div class="lg:col-span-2 flex flex-col gap-4 min-h-0">
+                        <div class="flex-grow min-h-0 flex flex-col">
+                            <h3 class="font-bold text-slate-500 text-sm mb-2 px-1">Active Stations</h3>
+                            <div id="admin-counters-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2"></div>
+                        </div>
+
                         <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-md flex-none h-64">
                             <div class="flex justify-between items-center mb-2">
                                 <h3 class="font-bold text-slate-600 text-xs flex items-center gap-2"><i class="fa-solid fa-bullhorn text-medical-600"></i> Announcements</h3>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full pb-6">
-                                <!-- Active List -->
                                 <div class="border-r border-slate-200 pr-4 flex flex-col min-h-0">
                                     <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">Active Messages</div>
-                                    <div id="admin-announcements-list" class="space-y-2 overflow-y-auto pr-1 flex-grow">
-                                        <!-- List items -->
-                                    </div>
+                                    <div id="admin-announcements-list" class="space-y-2 overflow-y-auto pr-1 flex-grow"></div>
                                 </div>
-                                <!-- Form -->
                                 <div class="flex flex-col h-full">
                                     <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">Post New</div>
                                     <textarea id="announce-text" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs text-slate-800 mb-2 focus:border-medical-500 outline-none resize-none flex-grow" placeholder="Type here..."></textarea>
@@ -479,15 +478,17 @@
                     <!-- Right: Queue List -->
                     <div class="bg-white rounded-xl border border-slate-200 flex flex-col overflow-hidden h-full shadow-md">
                         <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                            <h3 class="font-bold text-slate-600 text-sm"><i class="fa-solid fa-users"></i> Queue List</h3>
-                            <span class="text-xs bg-medical-50 text-medical-700 border border-medical-200 px-2 py-0.5 rounded" id="admin-queue-count">0</span>
+                            <div class="flex gap-4">
+                                <button onclick="app.setAdminTab('waiting')" id="tab-waiting" class="text-sm font-bold text-medical-700 border-b-2 border-medical-600 pb-1">Queue (<span id="admin-queue-count">0</span>)</button>
+                                <button onclick="app.setAdminTab('skipped')" id="tab-skipped" class="text-sm font-medium text-slate-500 pb-1 hover:text-slate-800">Skipped (<span id="admin-skipped-count">0</span>)</button>
+                            </div>
                         </div>
                         <div class="flex-grow overflow-auto p-0">
                             <table class="w-full text-left text-sm">
                                 <thead class="bg-slate-50 text-slate-500 text-xs sticky top-0 shadow-sm z-10 border-b border-slate-200">
                                     <tr>
                                         <th class="p-3 font-semibold">Name</th>
-                                        <th class="p-3 font-semibold">Purpose</th>
+                                        <th class="p-3 font-semibold">Details</th>
                                         <th class="p-3 font-semibold text-right">Action</th>
                                     </tr>
                                 </thead>
@@ -506,12 +507,11 @@
     </main>
 
     <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-6 right-6 translate-y-24 opacity-0 transition-all duration-300 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 z-50 border border-slate-700 max-w-sm">
+    <div id="toast" class="fixed bottom-6 right-6 translate-y-24 opacity-0 transition-all duration-300 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 z-[200] border border-slate-700 max-w-sm">
         <div class="bg-medical-600 p-1.5 rounded text-white"><i class="fa-solid fa-bell"></i></div>
         <span id="toast-msg" class="text-sm font-medium">Notification</span>
     </div>
 
-    <!-- Audio Element -->
     <audio id="bell-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <!-- App Logic -->
@@ -536,7 +536,6 @@
         const auth = getAuth(app_firebase);
         const db = getFirestore(app_firebase);
 
-        // --- State ---
         const state = {
             user: null,
             settings: { 
@@ -544,6 +543,7 @@
                 lastTicket: 0, 
                 windowCount: 4, 
                 queueDate: "",
+                printEnabled: true,
                 windowConfigs: { 1: ['All'], 2: ['All'], 3: ['All'], 4: ['All'] },
                 windowNames: { 1: "Station 1", 2: "Station 2", 3: "Station 3", 4: "Station 4" }
             },
@@ -551,6 +551,7 @@
             announcements: [],
             currentView: 'home',
             audioEnabled: false,
+            adminTab: 'waiting', // waiting | skipped
             purposes: ["Check-up", "Billing", "Laboratory", "Pharmacy", "Emergency", "Others"],
             subPurposes: {
                 "Check-up": ["General", "Pedia", "OB-GYN", "Dental", "Optical", "Specialist"],
@@ -562,7 +563,6 @@
             }
         };
 
-        // --- Controller ---
         window.app = {
             navigate: (viewId) => {
                 document.querySelectorAll('.view-section').forEach(el => {
@@ -578,7 +578,7 @@
                 state.currentView = viewId;
             },
 
-            // --- Kiosk Logic ---
+            // --- Kiosk ---
             renderKioskPurposes: () => {
                 const container = document.getElementById('main-purpose-list');
                 container.innerHTML = '';
@@ -590,6 +590,19 @@
                 });
                 const first = container.querySelector('button');
                 if(first) first.click();
+                app.updateKioskButton();
+            },
+
+            updateKioskButton: () => {
+                const btnText = document.getElementById('btn-text-print');
+                const btnIcon = document.getElementById('btn-icon-print');
+                if (state.settings.printEnabled) {
+                    btnText.innerText = "Print Ticket";
+                    btnIcon.className = "fa-solid fa-print";
+                } else {
+                    btnText.innerText = "Get Number";
+                    btnIcon.className = "fa-solid fa-arrow-right";
+                }
             },
 
             selectPurpose: (btn) => {
@@ -646,7 +659,6 @@
                 const actualName = document.getElementById('patient-actual-name').value.trim();
                 let purpose = document.getElementById('selected-purpose').value;
                 let subPurpose = document.getElementById('selected-sub-purpose').value;
-                const pId = document.getElementById('patient-id').value.trim();
 
                 if (!name) { app.showToast("Please enter visitor name"); return; }
                 
@@ -678,11 +690,12 @@
                         ticketNumber: newTicketNum, 
                         name: name,
                         patientName: actualName, 
-                        studentId: pId,
                         purpose: purpose, 
                         subPurpose: subPurpose, 
                         status: 'waiting', 
-                        skipCount: 0, 
+                        skipCount: 0,
+                        assignedWindow: null, // New: For transfers
+                        transferNote: '', 
                         alarmPlaying: false, 
                         timestamp: serverTimestamp()
                     });
@@ -690,6 +703,7 @@
                     const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config');
                     await updateDoc(settingsRef, { lastTicket: newTicketNum });
 
+                    // Update Success Screen
                     document.getElementById('ticket-name-display').textContent = name;
                     document.getElementById('ticket-patient-display').textContent = actualName ? `Patient: ${actualName}` : '';
                     let displayPurpose = purpose;
@@ -702,25 +716,30 @@
                     document.getElementById('kiosk-form-container').classList.add('hidden');
                     document.getElementById('ticket-success').classList.remove('hidden');
 
+                    if (state.settings.printEnabled) {
+                        document.getElementById('retry-print-btn').classList.remove('hidden');
+                        setTimeout(() => window.print(), 500);
+                    } else {
+                        document.getElementById('retry-print-btn').classList.add('hidden');
+                    }
+
                 } catch (e) { console.error(e); app.showToast("System Error"); } 
-                finally { btn.disabled = false; btn.innerHTML = 'Print Ticket <i class="fa-solid fa-print"></i>'; }
+                finally { btn.disabled = false; app.updateKioskButton(); }
             },
 
             resetKiosk: () => {
                 document.getElementById('patient-name').value = '';
                 document.getElementById('patient-actual-name').value = '';
-                document.getElementById('patient-id').value = '';
                 document.getElementById('other-reason-input').value = '';
                 document.getElementById('selected-sub-purpose').value = '';
                 document.getElementById('other-reason-container').classList.add('hidden');
                 document.getElementById('sub-purpose-section').classList.add('hidden');
-                
                 app.renderKioskPurposes(); 
-
                 document.getElementById('kiosk-form-container').classList.remove('hidden');
                 document.getElementById('ticket-success').classList.add('hidden');
             },
 
+            // --- Admin Auth & Settings ---
             verifyPin: () => {
                 if (document.getElementById('admin-pin-input').value === state.settings.adminPin) {
                     document.getElementById('pin-error').classList.add('hidden');
@@ -728,49 +747,42 @@
                     app.navigate('admin-dashboard');
                 } else { document.getElementById('pin-error').classList.remove('hidden'); }
             },
-
             logoutAdmin: () => app.navigate('home'),
-
             toggleSettings: () => {
                 const el = document.getElementById('admin-settings-panel');
                 el.classList.toggle('hidden');
                 if(!el.classList.contains('hidden')) {
                     document.getElementById('setting-window-count').innerText = state.settings.windowCount;
+                    document.getElementById('setting-print-toggle').checked = state.settings.printEnabled || false;
                     renderWindowConfigs();
                 }
             },
-
             adjustWindowCount: async (delta) => {
                 let newCount = state.settings.windowCount + delta;
                 if (newCount < 1) newCount = 1; if (newCount > 10) newCount = 10;
-                try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { windowCount: newCount });
-                    document.getElementById('setting-window-count').innerText = newCount;
-                } catch(e) { console.error(e); }
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { windowCount: newCount });
+                document.getElementById('setting-window-count').innerText = newCount;
             },
-
+            togglePrinting: async (val) => {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { printEnabled: val });
+            },
             updatePin: async () => {
                 const newPin = document.getElementById('new-pin-input').value;
                 if (newPin.length < 4) { app.showToast("PIN must be 4 digits"); return; }
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { adminPin: newPin });
                 app.showToast("PIN Updated");
             },
-
             saveWindowConfig: async (winId, selectEl) => {
                 const val = selectEl.value;
                 const newConfigs = { ...state.settings.windowConfigs };
                 newConfigs[winId] = [val]; 
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { windowConfigs: newConfigs });
-                app.showToast(`Window ${winId} set to ${val}`);
             },
-
             saveWindowName: async (winId, name) => {
                 const newNames = { ...state.settings.windowNames };
                 newNames[winId] = name;
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { windowNames: newNames });
-                app.showToast(`Station ${winId} renamed`);
             },
-
             resetQueue: async () => {
                 if(!confirm("Reset ALL data?")) return;
                 try {
@@ -781,35 +793,38 @@
                 } catch(e) { console.error(e); }
             },
 
+            // --- Announcements ---
             addAnnouncement: async () => {
                 const content = document.getElementById('announce-text').value;
                 const cat = document.getElementById('announce-cat').value;
                 if(!content) return;
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'announcements'), {
-                    content, category: cat, timestamp: serverTimestamp()
-                });
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'announcements'), { content, category: cat, timestamp: serverTimestamp() });
                 document.getElementById('announce-text').value = '';
-                app.showToast("Posted");
             },
-
             deleteAnnouncement: async (id) => {
-                if(confirm("Delete this announcement?")) {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'announcements', id));
-                }
+                if(confirm("Delete this announcement?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'announcements', id));
             },
 
+            // --- Queue Logic ---
             callNextForWindow: async (windowNum) => {
                 const config = state.settings.windowConfigs?.[windowNum] || ['All'];
                 const allowed = config.includes('All') ? null : config;
 
+                // Priority: 1. Assigned directly to this window (Transfers), 2. Waiting & Matching Purpose
                 const nextItem = state.queue.find(item => {
                     if (item.status !== 'waiting') return false;
-                    if (!allowed) return true; 
-                    return allowed.includes(item.purpose); 
+                    // Exact match assignment takes priority
+                    if (String(item.assignedWindow) === String(windowNum)) return true;
+                    // If no specific assignment, check general config match
+                    if (!item.assignedWindow) {
+                        if (!allowed) return true; 
+                        return allowed.includes(item.purpose); 
+                    }
+                    return false;
                 });
 
                 if (!nextItem) { 
-                    app.showToast(allowed ? `No ${allowed[0]} visitors waiting` : "Queue is empty"); 
+                    app.showToast("No matching visitors"); 
                     return; 
                 }
 
@@ -817,22 +832,96 @@
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', nextItem.id), { 
                         status: 'serving', 
                         window: windowNum, 
+                        assignedWindow: null, // Clear assignment
                         calledAt: serverTimestamp(), 
                         alarmPlaying: true 
                     });
                 } catch(e) { console.error(e); }
             },
 
+            finishForWindow: async (id) => {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), { status: 'completed', alarmPlaying: false });
+            },
+            
             stopAlarm: async (id) => {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), { alarmPlaying: false });
             },
 
-            finishForWindow: async (id) => {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), { status: 'completed', alarmPlaying: false });
+            // --- New Features: Skip & Transfer ---
+            skipServing: async (id, currentSkipCount) => {
+                const newCount = (currentSkipCount || 0) + 1;
+                const updates = {};
+                
+                if (newCount >= 3) {
+                    updates.status = 'skipped';
+                    updates.window = null;
+                    app.showToast("Skipped 3x. Removed from queue.");
+                } else {
+                    updates.status = 'waiting';
+                    updates.window = null;
+                    updates.skipCount = newCount;
+                    app.showToast("Customer skipped. Moved to next.");
+                }
+                updates.alarmPlaying = false;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), updates);
+            },
+
+            openTransferModal: (id) => {
+                document.getElementById('transfer-ticket-id').value = id;
+                const select = document.getElementById('transfer-target-window');
+                select.innerHTML = '';
+                for(let i=1; i<=state.settings.windowCount; i++) {
+                    const name = state.settings.windowNames?.[i] || `Station ${i}`;
+                    select.insertAdjacentHTML('beforeend', `<option value="${i}">${name}</option>`);
+                }
+                document.getElementById('transfer-note').value = '';
+                document.getElementById('transfer-modal').classList.remove('hidden');
+            },
+
+            confirmTransfer: async () => {
+                const id = document.getElementById('transfer-ticket-id').value;
+                const targetWin = document.getElementById('transfer-target-window').value;
+                const note = document.getElementById('transfer-note').value;
+
+                if(!targetWin) return;
+
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), {
+                    status: 'waiting',
+                    window: null,
+                    assignedWindow: targetWin,
+                    transferNote: note,
+                    alarmPlaying: false
+                });
+                
+                document.getElementById('transfer-modal').classList.add('hidden');
+                app.showToast(`Transferred to Station ${targetWin}`);
+            },
+
+            setAdminTab: (tab) => {
+                state.adminTab = tab;
+                const waitingBtn = document.getElementById('tab-waiting');
+                const skippedBtn = document.getElementById('tab-skipped');
+                
+                if (tab === 'waiting') {
+                    waitingBtn.classList.add('text-medical-700', 'border-b-2', 'border-medical-600');
+                    waitingBtn.classList.remove('text-slate-500');
+                    skippedBtn.classList.remove('text-medical-700', 'border-b-2', 'border-medical-600');
+                    skippedBtn.classList.add('text-slate-500');
+                } else {
+                    skippedBtn.classList.add('text-medical-700', 'border-b-2', 'border-medical-600');
+                    skippedBtn.classList.remove('text-slate-500');
+                    waitingBtn.classList.remove('text-medical-700', 'border-b-2', 'border-medical-600');
+                    waitingBtn.classList.add('text-slate-500');
+                }
+                updateUI();
             },
 
             removeTicket: async (id) => {
-                if(confirm("Remove from queue?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id));
+                if(confirm("Permanently delete this ticket?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id));
+            },
+            requeueSkipped: async (id) => {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), { status: 'waiting', skipCount: 0 });
+                app.showToast("Re-queued");
             },
 
             enableAudio: () => {
@@ -864,11 +953,8 @@
             for(let i=1; i<=state.settings.windowCount; i++) {
                 const current = state.settings.windowConfigs?.[i]?.[0] || 'All';
                 const currentName = state.settings.windowNames?.[i] || `Station ${i}`;
-                
                 let options = `<option value="All">All Services</option>`;
-                state.purposes.forEach(p => {
-                    if(p !== 'Others') options += `<option value="${p}" ${current === p ? 'selected' : ''}>${p}</option>`;
-                });
+                state.purposes.forEach(p => { if(p !== 'Others') options += `<option value="${p}" ${current === p ? 'selected' : ''}>${p}</option>`; });
 
                 container.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center justify-between text-xs text-slate-500 bg-slate-50 p-2 rounded mb-1">
@@ -876,9 +962,7 @@
                             <span class="font-bold text-[10px] uppercase">Station ID: ${i}</span>
                             <input type="text" class="bg-white border border-slate-300 rounded px-1 py-0.5 w-24 text-slate-700" value="${currentName}" onchange="app.saveWindowName(${i}, this.value)" placeholder="Name">
                         </div>
-                        <select onchange="app.saveWindowConfig(${i}, this)" class="bg-white border border-slate-300 rounded p-1 text-slate-700 h-8">
-                            ${options}
-                        </select>
+                        <select onchange="app.saveWindowConfig(${i}, this)" class="bg-white border border-slate-300 rounded p-1 text-slate-700 h-8">${options}</select>
                     </div>
                 `);
             }
@@ -888,13 +972,15 @@
             const waiting = state.queue.filter(i => i.status === 'waiting');
             const serving = state.queue.filter(i => i.status === 'serving');
             const completed = state.queue.filter(i => i.status === 'completed');
+            const skipped = state.queue.filter(i => i.status === 'skipped');
 
             app.manageAudioLoop(serving.some(i => i.alarmPlaying));
 
             document.getElementById('admin-total-served').innerText = `Served: ${completed.length}`;
             document.getElementById('admin-queue-count').innerText = waiting.length;
+            document.getElementById('admin-skipped-count').innerText = skipped.length;
             
-            // 1. Admin Counters Render
+            // 1. Admin Counters
             const adminCounters = document.getElementById('admin-counters-list');
             adminCounters.innerHTML = '';
             for(let i=1; i<=state.settings.windowCount; i++) {
@@ -906,18 +992,26 @@
                     const isAlarm = ticket.alarmPlaying;
                     let displayPurpose = ticket.purpose;
                     if(ticket.subPurpose) displayPurpose += ` (${ticket.subPurpose})`;
+                    if(ticket.transferNote) displayPurpose += `<br><span class="text-amber-600">Note: ${ticket.transferNote}</span>`;
 
                     adminCounters.insertAdjacentHTML('beforeend', `
-                        <div class="bg-white border border-medical-500 p-3 rounded-xl shadow-sm">
+                        <div class="bg-white border border-medical-500 p-3 rounded-xl shadow-sm relative overflow-hidden">
                             <div class="flex justify-between items-start mb-2">
                                 <div>
                                     <div class="text-[10px] font-bold text-medical-600 uppercase">${winName} (${role})</div>
                                     <div class="text-lg font-black text-slate-800 truncate w-32">${ticket.name}</div>
-                                    <div class="text-[10px] text-slate-500">#${String(ticket.ticketNumber).padStart(3,'0')} • ${displayPurpose}</div>
+                                    <div class="text-[10px] text-slate-500">#${String(ticket.ticketNumber).padStart(3,'0')} • Skip: ${ticket.skipCount || 0}/3</div>
+                                    <div class="text-[10px] text-slate-500 mt-1">${displayPurpose}</div>
                                 </div>
-                                <button onclick="app.finishForWindow('${ticket.id}')" class="bg-medical-600 hover:bg-medical-700 text-white px-2 py-1 rounded text-xs font-bold">Done</button>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="app.finishForWindow('${ticket.id}')" class="bg-medical-600 hover:bg-medical-700 text-white px-2 py-1 rounded text-xs font-bold">Done</button>
+                                </div>
                             </div>
-                            <button onclick="app.stopAlarm('${ticket.id}')" class="w-full ${isAlarm ? 'bg-red-500 hover:bg-red-600 animate-pulse text-white' : 'bg-slate-100 text-slate-500'} py-1.5 rounded text-xs font-bold transition-all" ${!isAlarm ? 'disabled' : ''}>${isAlarm ? 'Stop Calling' : 'Calling...'}</button>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <button onclick="app.skipServing('${ticket.id}', ${ticket.skipCount || 0})" class="bg-orange-100 text-orange-700 hover:bg-orange-200 py-1 rounded text-xs font-bold">Skip</button>
+                                <button onclick="app.openTransferModal('${ticket.id}')" class="bg-amber-100 text-amber-700 hover:bg-amber-200 py-1 rounded text-xs font-bold">Transfer</button>
+                            </div>
+                             <button onclick="app.stopAlarm('${ticket.id}')" class="w-full mt-2 ${isAlarm ? 'bg-red-500 hover:bg-red-600 animate-pulse text-white' : 'bg-slate-100 text-slate-500'} py-1 rounded text-xs font-bold transition-all" ${!isAlarm ? 'disabled' : ''}>${isAlarm ? 'Stop Calling' : 'Calling...'}</button>
                         </div>
                     `);
                 } else {
@@ -933,33 +1027,48 @@
                 }
             }
 
-            // 2. Admin Queue List
+            // 2. Admin Queue List (Tabs)
             const adminList = document.getElementById('admin-queue-list');
             const adminEmpty = document.getElementById('admin-empty-state');
             adminList.innerHTML = '';
-            if (waiting.length === 0) adminEmpty.classList.remove('hidden');
+            
+            const listToShow = state.adminTab === 'waiting' ? waiting : skipped;
+
+            if (listToShow.length === 0) adminEmpty.classList.remove('hidden');
             else {
                 adminEmpty.classList.add('hidden');
-                waiting.forEach(item => {
+                listToShow.forEach(item => {
                     let displayPurpose = item.purpose;
                     if(item.subPurpose) displayPurpose += ` <span class="text-slate-400 text-[10px]">(${item.subPurpose})</span>`;
+                    if(item.assignedWindow) displayPurpose += `<span class="block text-amber-600 text-[10px] font-bold">Transferred to Stn ${item.assignedWindow}</span>`;
+                    
                     let displayName = item.name;
                     if(item.patientName) displayName += `<br><span class="text-[10px] text-slate-400">Pt: ${item.patientName}</span>`;
 
+                    let actions = `<button onclick="app.removeTicket('${item.id}')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>`;
+                    if(state.adminTab === 'skipped') {
+                        actions = `<button onclick="app.requeueSkipped('${item.id}')" class="text-medical-600 hover:text-medical-800 mr-2" title="Re-queue"><i class="fa-solid fa-rotate-left"></i></button>` + actions;
+                    }
+
                     adminList.insertAdjacentHTML('beforeend', `
                         <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0">
-                            <td class="p-3 font-medium text-slate-800 leading-tight">${displayName}</td>
-                            <td class="p-3"><span class="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">${displayPurpose}</span></td>
-                            <td class="p-3 text-right"><button onclick="app.removeTicket('${item.id}')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+                            <td class="p-3 font-medium text-slate-800 leading-tight">
+                                ${displayName}
+                                <div class="text-[10px] font-mono text-slate-400">#${String(item.ticketNumber).padStart(3,'0')}</div>
+                            </td>
+                            <td class="p-3">
+                                <span class="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">${displayPurpose}</span>
+                                ${item.transferNote ? `<div class="text-[10px] text-slate-400 mt-1 italic max-w-[100px] truncate">"${item.transferNote}"</div>` : ''}
+                            </td>
+                            <td class="p-3 text-right">${actions}</td>
                         </tr>
                     `);
                 });
             }
 
-            // 3. Monitor Render (Fixed Grid)
+            // 3. Monitor Grid
             const monitorGrid = document.getElementById('monitor-windows-grid');
             monitorGrid.innerHTML = '';
-            
             const wCount = state.settings.windowCount;
             let gridClass = "grid-cols-2";
             if(wCount === 1) gridClass = "grid-cols-1";
@@ -967,7 +1076,6 @@
             else if(wCount > 2) gridClass = "grid-cols-2 md:grid-cols-3";
             
             monitorGrid.className = `flex-grow grid gap-3 content-start ${gridClass}`;
-
             const itemHeightClass = wCount > 4 ? "h-32" : "h-40";
 
             for(let i=1; i<=wCount; i++) {
@@ -978,7 +1086,6 @@
                     const isAlarm = ticket.alarmPlaying;
                     let purposeText = ticket.purpose;
                     if(ticket.subPurpose) purposeText = ticket.subPurpose; 
-                    
                     const bgClass = isAlarm ? 'bg-accent-50' : 'bg-medical-50';
 
                     monitorGrid.insertAdjacentHTML('beforeend', `
@@ -1002,18 +1109,15 @@
                 }
             }
 
-            // 4. Monitor Waiting List
+            // 4. Monitor List
             const monitorList = document.getElementById('monitor-list');
             monitorList.innerHTML = '';
             document.getElementById('monitor-total-waiting').innerText = `${waiting.length} Waiting`;
-            
-            const maxItems = 6; 
-            const shownItems = waiting.slice(0, maxItems);
+            const shownItems = waiting.slice(0, 6);
             
             shownItems.forEach(item => {
                 let purposeDisp = item.purpose;
                 if(item.subPurpose) purposeDisp = item.subPurpose;
-
                 monitorList.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200">
                         <div class="flex items-center gap-3 w-3/4">
@@ -1024,17 +1128,13 @@
                     </div>
                 `);
             });
-            
-            if(waiting.length > maxItems) {
-                monitorList.insertAdjacentHTML('beforeend', `<div class="text-center text-xs text-slate-400 mt-1 italic">+${waiting.length - maxItems} more...</div>`);
-            }
+            if(waiting.length > 6) monitorList.insertAdjacentHTML('beforeend', `<div class="text-center text-xs text-slate-400 mt-1 italic">+${waiting.length - 6} more...</div>`);
         }
 
         function updateAnnouncements() {
             const list = state.announcements;
             const cats = ['Billing', 'Lab', 'General'];
             
-            // Monitor Update
             cats.forEach(cat => {
                 const el = document.getElementById(`announce-${cat.toLowerCase()}`);
                 const items = list.filter(a => a.category === cat || (cat === 'Lab' && a.category === 'Pharmacy')); 
@@ -1045,7 +1145,6 @@
                         const date = latest.timestamp.toDate ? latest.timestamp.toDate() : new Date(latest.timestamp);
                         dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
                     }
-                    
                     el.innerHTML = `
                         <div class="flex flex-col h-full pt-5">
                             <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line flex-grow overflow-hidden">${latest.content}</p>
@@ -1056,7 +1155,6 @@
                 }
             });
 
-            // Admin List Update
             const adminEl = document.getElementById('admin-announcements-list');
             if(adminEl) {
                 if(list.length === 0) {
@@ -1083,33 +1181,24 @@
             }
         }
 
-        // --- Init ---
         async function init() {
             try { await signInAnonymously(auth); } catch (e) { console.error(e); }
-            
             setInterval(() => {
                 const now = new Date();
                 document.getElementById('clock-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second: '2-digit'});
                 document.getElementById('clock-date').innerText = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-                
                 const today = new Date().toLocaleDateString('en-CA');
                 if(state.settings.queueDate && state.settings.queueDate !== today) {
                     updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { queueDate: today, lastTicket: 0 });
                 }
             }, 1000);
             
-            setupListeners();
-        }
-
-        function setupListeners() {
             const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config');
             onSnapshot(settingsRef, (snap) => {
                 if (snap.exists()) {
                     state.settings = { ...state.settings, ...snap.data() };
                     updateUI();
-                } else {
-                    setDoc(settingsRef, state.settings); 
-                }
+                } else { setDoc(settingsRef, state.settings); }
             });
 
             const qRef = collection(db, 'artifacts', appId, 'public', 'data', 'queue_items');
