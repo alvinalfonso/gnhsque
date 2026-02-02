@@ -119,30 +119,50 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Print Styles */
+        /* --- PRINT STYLES REVISION --- */
         @media print {
             @page { margin: 0; size: auto; }
-            body, html { width: 100%; height: 100%; margin: 0; padding: 0; }
-            body * { visibility: hidden; }
-            #printable-ticket, #printable-ticket * { 
-                visibility: visible; 
+            body, html { 
+                width: 100%; 
+                height: 100%; 
+                margin: 0; 
+                padding: 0; 
+                background: white;
             }
+            body * { visibility: hidden; height: 0; overflow: hidden; }
+            
             #printable-ticket {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 10px;
+                visibility: visible !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important; /* Adjust based on printer paper width if needed, usually 100% of body is fine */
+                max-width: 300px !important; /* Standard thermal printer width constraint */
+                margin: 0 auto !important;
+                padding: 10px 0 !important;
                 background: white !important;
                 color: black !important;
                 border: none !important;
                 box-shadow: none !important;
-                transform: none !important;
-                max-width: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                font-family: 'Courier New', monospace !important; /* Monospace prints clearer on thermal */
             }
-            #kiosk-actions { display: none !important; }
-            .no-print { display: none !important; }
+            
+            #printable-ticket * {
+                visibility: visible !important;
+                height: auto !important;
+                overflow: visible !important;
+                color: black !important;
+            }
+
+            /* Reset flex/grid layouts for print to block */
+            #printable-ticket .flex { display: block !important; }
+            #printable-ticket .text-right { text-align: right !important; }
+            #printable-ticket .text-center { text-align: center !important; }
+            
+            /* Hide non-print UI elements */
+            .no-print, #kiosk-actions, nav, #toast { display: none !important; }
         }
     </style>
 </head>
@@ -220,12 +240,12 @@
         <div id="view-kiosk" class="view-section">
             <div class="max-w-md mx-auto my-6 px-4">
                 <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-                    <div class="bg-gradient-to-r from-medical-700 to-medical-800 p-6 text-white text-center relative overflow-hidden">
+                    <div class="bg-gradient-to-r from-medical-700 to-medical-800 p-6 text-white text-center relative overflow-hidden no-print">
                         <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
                         <h2 class="text-2xl font-bold relative z-10"><i class="fa-solid fa-user-tag mr-2"></i>Visitor Check-in</h2>
                     </div>
                     <div class="p-6 space-y-4">
-                        <div id="kiosk-form-container">
+                        <div id="kiosk-form-container" class="no-print">
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Visitor Name <span class="text-red-500">*</span></label>
@@ -268,29 +288,30 @@
                             
                             <!-- Printable Area -->
                             <div id="printable-ticket" class="bg-white text-black p-4 rounded-xl border-t-4 border-medical-500 relative mx-4 shadow-xl border-x border-b border-slate-100">
-                                <div class="text-center mb-4">
-                                    <p class="text-xs font-bold text-slate-600 uppercase">Pampanga Medical Specialist Hospital</p>
-                                    <p class="text-[10px] text-slate-400">Queueing System</p>
+                                <div class="text-center mb-4 border-b border-black pb-2">
+                                    <p class="text-xs font-bold uppercase text-black">Pampanga Medical</p>
+                                    <p class="text-xs font-bold uppercase text-black">Specialist Hospital</p>
+                                    <p class="text-[10px] mt-1">Queueing Ticket</p>
                                 </div>
-                                <div class="flex justify-between items-center border-b-2 border-dashed border-slate-300 pb-3 mb-3">
+                                <div class="flex justify-between items-center border-b-2 border-dashed border-black pb-3 mb-3">
                                     <div class="text-left">
-                                        <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Queue No.</div>
-                                        <div class="text-4xl font-mono font-black text-slate-900" id="new-ticket-number">#000</div>
+                                        <div class="text-[10px] uppercase tracking-widest font-bold">Queue No.</div>
+                                        <div class="text-4xl font-mono font-black text-black" id="new-ticket-number">#000</div>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Time</div>
-                                        <div class="text-xl font-bold text-slate-800" id="ticket-time">--:--</div>
+                                        <div class="text-[10px] uppercase tracking-widest font-bold">Time</div>
+                                        <div class="text-xl font-bold text-black" id="ticket-time">--:--</div>
                                     </div>
                                 </div>
                                 <div class="text-center space-y-1">
-                                    <div class="text-lg font-bold text-medical-700 break-words" id="ticket-name-display">Name</div>
-                                    <div class="text-xs text-slate-500" id="ticket-patient-display"></div>
-                                    <div class="text-sm font-bold text-slate-800 bg-slate-100 inline-block px-2 py-1 rounded mt-1" id="ticket-purpose-display">Purpose</div>
+                                    <div class="text-lg font-bold text-black break-words uppercase" id="ticket-name-display">Name</div>
+                                    <div class="text-xs text-black" id="ticket-patient-display"></div>
+                                    <div class="text-sm font-bold text-black border border-black inline-block px-2 py-1 rounded mt-1" id="ticket-purpose-display">Purpose</div>
                                 </div>
-                                <div class="mt-4 text-[10px] text-slate-400 text-center italic">Please wait for your number to be called.</div>
+                                <div class="mt-4 text-[10px] text-center italic">Please wait for your number to be called.</div>
                             </div>
 
-                            <div id="kiosk-actions" class="flex flex-col gap-2">
+                            <div id="kiosk-actions" class="flex flex-col gap-2 no-print">
                                 <button type="button" onclick="window.print()" id="retry-print-btn" class="hidden w-full bg-slate-800 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors text-sm flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-print"></i> Print Again
                                 </button>
@@ -301,7 +322,7 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="app.navigate('home')" class="mt-8 w-full text-slate-500 hover:text-slate-700 flex items-center justify-center gap-2 transition-colors text-sm">
+                <button onclick="app.navigate('home')" class="mt-8 w-full text-slate-500 hover:text-slate-700 flex items-center justify-center gap-2 transition-colors text-sm no-print">
                     <i class="fa-solid fa-arrow-left"></i> Back to Main Menu
                 </button>
             </div>
@@ -466,23 +487,25 @@
                     </div>
                 </div>
 
-                <!-- Transfer Modal -->
+                <!-- Transfer/Endorse Modal (Unified) -->
                 <div id="transfer-modal" class="hidden fixed inset-0 bg-slate-900/50 z-[110] flex items-center justify-center p-4">
                     <div class="bg-white w-full max-w-sm rounded-2xl border border-slate-200 shadow-2xl p-6">
-                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-arrow-right-arrow-left text-amber-500"></i> Transfer Customer</h3>
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2" id="transfer-modal-title"><i class="fa-solid fa-arrow-right-arrow-left text-amber-500"></i> Move Patient</h3>
                         <input type="hidden" id="transfer-ticket-id">
+                        <input type="hidden" id="transfer-type" value="transfer"> <!-- 'transfer' or 'endorse' -->
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Transfer To Station</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Target Station</label>
                                 <select id="transfer-target-window" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 outline-none focus:border-medical-500"></select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Reason / Note</label>
                                 <textarea id="transfer-note" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 outline-none focus:border-medical-500 resize-none h-20" placeholder="e.g. Needs Lab clearance"></textarea>
                             </div>
+                            <div id="transfer-info-text" class="text-[10px] text-slate-400 italic"></div>
                             <div class="flex gap-2 pt-2">
                                 <button onclick="document.getElementById('transfer-modal').classList.add('hidden')" class="flex-1 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-sm border border-slate-200">Cancel</button>
-                                <button onclick="app.confirmTransfer()" class="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-sm shadow-md">Transfer</button>
+                                <button onclick="app.confirmTransfer()" class="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-sm shadow-md" id="transfer-confirm-btn">Confirm</button>
                             </div>
                         </div>
                     </div>
@@ -802,8 +825,9 @@
                         purpose: purpose, 
                         subPurpose: subPurpose, 
                         status: 'waiting', 
+                        priority: 0, // 0 = Standard, 10 = Endorsement
                         skipCount: 0,
-                        assignedWindow: null, // New: For transfers
+                        assignedWindow: null, // For transfers/endorsements
                         transferNote: '', 
                         alarmPlaying: false, 
                         timestamp: serverTimestamp()
@@ -924,24 +948,37 @@
                 const config = state.settings.windowConfigs?.[windowNum] || ['All'];
                 const allowed = config.includes('All') ? null : config;
 
-                // Priority: 1. Assigned directly to this window (Transfers), 2. Waiting & Matching Purpose
-                const nextItem = state.queue.find(item => {
+                // Priority Logic:
+                // 1. Filter by status 'waiting'.
+                // 2. Filter by assignment (matches window OR no assignment but matches purpose).
+                let candidates = state.queue.filter(item => {
                     if (excludeId && item.id === excludeId) return false;
                     if (item.status !== 'waiting') return false;
-                    // Exact match assignment takes priority
-                    if (String(item.assignedWindow) === String(windowNum)) return true;
-                    // If no specific assignment, check general config match
-                    if (!item.assignedWindow) {
-                        if (!allowed) return true; 
-                        return allowed.includes(item.purpose); 
+                    
+                    // Specific assignment (Transfer/Endorsement)
+                    if (item.assignedWindow) {
+                        return String(item.assignedWindow) === String(windowNum);
                     }
-                    return false;
+                    
+                    // General pool
+                    if (!allowed) return true;
+                    return allowed.includes(item.purpose);
                 });
 
-                if (!nextItem) { 
+                if (candidates.length === 0) { 
                     if (!suppressToast) app.showToast("No matching visitors"); 
                     return; 
                 }
+
+                // Sorting: High Priority First (Endorsements), then Low Priority, then Ticket Number (FIFO)
+                candidates.sort((a, b) => {
+                    const pA = a.priority || 0;
+                    const pB = b.priority || 0;
+                    if (pA !== pB) return pB - pA; // Descending priority
+                    return a.ticketNumber - b.ticketNumber; // Ascending ticket number
+                });
+
+                const nextItem = candidates[0];
 
                 try {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', nextItem.id), { 
@@ -962,7 +999,7 @@
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), { alarmPlaying: false });
             },
 
-            // --- New Features: Skip & Transfer ---
+            // --- New Features: Skip, Transfer, Endorse ---
             skipServing: async (id, currentSkipCount, windowNum) => {
                 const newCount = (currentSkipCount || 0) + 1;
                 const updates = {};
@@ -981,20 +1018,38 @@
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), updates);
 
                 if (windowNum) {
-                    // Auto call next, excluding the current ticket (in case status update is slightly delayed in local state)
-                    // Pass true to suppress "No matching visitors" toast if empty (vacant)
                     app.callNextForWindow(windowNum, id, true);
                 }
             },
 
-            openTransferModal: (id) => {
+            openTransferModal: (id, type) => {
                 document.getElementById('transfer-ticket-id').value = id;
+                document.getElementById('transfer-type').value = type;
+                
+                // UI Updates based on Type
+                const titleEl = document.getElementById('transfer-modal-title');
+                const btnEl = document.getElementById('transfer-confirm-btn');
+                const infoEl = document.getElementById('transfer-info-text');
+
                 const select = document.getElementById('transfer-target-window');
                 select.innerHTML = '';
                 for(let i=1; i<=state.settings.windowCount; i++) {
                     const name = state.settings.windowNames?.[i] || `Station ${i}`;
                     select.insertAdjacentHTML('beforeend', `<option value="${i}">${name}</option>`);
                 }
+
+                if (type === 'endorse') {
+                    titleEl.innerHTML = `<i class="fa-solid fa-user-nurse text-purple-500"></i> Endorse Patient`;
+                    btnEl.className = "flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-sm shadow-md";
+                    btnEl.innerText = "Endorse (High Priority)";
+                    infoEl.innerText = "Endorsed patients will be placed at the front of the target station's queue (next to be called).";
+                } else {
+                    titleEl.innerHTML = `<i class="fa-solid fa-arrow-right-arrow-left text-amber-500"></i> Transfer Patient`;
+                    btnEl.className = "flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-sm shadow-md";
+                    btnEl.innerText = "Transfer (Standard)";
+                    infoEl.innerText = "Transferred patients will join the end of the target station's queue.";
+                }
+
                 document.getElementById('transfer-note').value = '';
                 document.getElementById('transfer-modal').classList.remove('hidden');
             },
@@ -1003,19 +1058,25 @@
                 const id = document.getElementById('transfer-ticket-id').value;
                 const targetWin = document.getElementById('transfer-target-window').value;
                 const note = document.getElementById('transfer-note').value;
+                const type = document.getElementById('transfer-type').value;
 
                 if(!targetWin) return;
+
+                // Endorsement gets Priority 10, Normal Transfer gets Priority 0
+                const priority = (type === 'endorse') ? 10 : 0;
+                const notePrefix = (type === 'endorse') ? '[ENDORSED] ' : '';
 
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), {
                     status: 'waiting',
                     window: null,
                     assignedWindow: targetWin,
-                    transferNote: note,
+                    priority: priority,
+                    transferNote: notePrefix + note,
                     alarmPlaying: false
                 });
                 
                 document.getElementById('transfer-modal').classList.add('hidden');
-                app.showToast(`Transferred to Station ${targetWin}`);
+                app.showToast(type === 'endorse' ? `Endorsed to Station ${targetWin}` : `Transferred to Station ${targetWin}`);
             },
 
             setAdminTab: (tab) => {
@@ -1115,8 +1176,13 @@
                     if(ticket.subPurpose) displayPurpose += ` (${ticket.subPurpose})`;
                     if(ticket.transferNote) displayPurpose += `<br><span class="text-amber-600">Note: ${ticket.transferNote}</span>`;
 
+                    // Check if Endorsement
+                    const isEndorsement = (ticket.priority || 0) >= 10;
+                    const cardBorder = isEndorsement ? 'border-purple-500' : 'border-medical-500';
+
                     adminCounters.insertAdjacentHTML('beforeend', `
-                        <div class="bg-white border border-medical-500 p-3 rounded-xl shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                        <div class="bg-white border ${cardBorder} p-3 rounded-xl shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                            ${isEndorsement ? '<div class="absolute top-0 right-0 bg-purple-500 text-white text-[9px] px-2 py-0.5 rounded-bl">ENDORSED</div>' : ''}
                             <div class="flex justify-between items-start">
                                 <div class="min-w-0 pr-2 flex-1">
                                     <div class="flex items-center gap-1 mb-0.5">
@@ -1140,8 +1206,13 @@
                                         <i class="fa-solid fa-bell${!isAlarm ? '-slash' : ''}"></i>
                                     </button>
 
-                                    <!-- Transfer -->
-                                    <button onclick="app.openTransferModal('${ticket.id}')" class="bg-white text-slate-500 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center transition-all" title="Transfer Customer">
+                                    <!-- Endorse (New Feature) -->
+                                    <button onclick="app.openTransferModal('${ticket.id}', 'endorse')" class="bg-white text-slate-500 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300 border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center transition-all" title="Endorse (Priority Move)">
+                                        <i class="fa-solid fa-user-nurse"></i>
+                                    </button>
+
+                                    <!-- Transfer (Standard) -->
+                                    <button onclick="app.openTransferModal('${ticket.id}', 'transfer')" class="bg-white text-slate-500 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center transition-all" title="Transfer Customer">
                                         <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                     </button>
 
@@ -1178,14 +1249,27 @@
             
             const listToShow = state.adminTab === 'waiting' ? waiting : skipped;
 
+            // Sort waiting list by priority then ticket number for display
+            if (state.adminTab === 'waiting') {
+                listToShow.sort((a, b) => {
+                    const pA = a.priority || 0;
+                    const pB = b.priority || 0;
+                    if (pA !== pB) return pB - pA;
+                    return a.ticketNumber - b.ticketNumber;
+                });
+            }
+
             if (listToShow.length === 0) adminEmpty.classList.remove('hidden');
             else {
                 adminEmpty.classList.add('hidden');
                 listToShow.forEach(item => {
                     let displayPurpose = item.purpose;
                     if(item.subPurpose) displayPurpose += ` <span class="text-slate-400 text-[10px]">(${item.subPurpose})</span>`;
-                    if(item.assignedWindow) displayPurpose += `<span class="block text-amber-600 text-[10px] font-bold">Transferred to Stn ${item.assignedWindow}</span>`;
+                    if(item.assignedWindow) displayPurpose += `<span class="block text-amber-600 text-[10px] font-bold">To Stn ${item.assignedWindow}</span>`;
                     
+                    let priorityBadge = '';
+                    if ((item.priority || 0) >= 10) priorityBadge = '<span class="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold uppercase ml-1">Priority</span>';
+
                     let displayName = item.name;
                     if(item.patientName) displayName += `<br><span class="text-[10px] text-slate-400">Pt: ${item.patientName}</span>`;
 
@@ -1195,10 +1279,10 @@
                     }
 
                     adminList.insertAdjacentHTML('beforeend', `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0">
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0 ${item.priority >= 10 ? 'bg-purple-50/50' : ''}">
                             <td class="p-3 font-medium text-slate-800 leading-tight">
                                 ${displayName}
-                                <div class="text-[10px] font-mono text-slate-400">#${String(item.ticketNumber).padStart(3,'0')}</div>
+                                <div class="text-[10px] font-mono text-slate-400">#${String(item.ticketNumber).padStart(3,'0')} ${priorityBadge}</div>
                             </td>
                             <td class="p-3">
                                 <span class="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">${displayPurpose}</span>
@@ -1256,14 +1340,25 @@
             // 4. Monitor List
             const monitorList = document.getElementById('monitor-list');
             monitorList.innerHTML = '';
-            document.getElementById('monitor-total-waiting').innerText = `${waiting.length} Waiting`;
-            const shownItems = waiting.slice(0, 6);
+            
+            // Re-sort for monitor (Priority > FIFO)
+            const monitorQueue = [...waiting].sort((a, b) => {
+                const pA = a.priority || 0;
+                const pB = b.priority || 0;
+                if (pA !== pB) return pB - pA;
+                return a.ticketNumber - b.ticketNumber;
+            });
+
+            document.getElementById('monitor-total-waiting').innerText = `${monitorQueue.length} Waiting`;
+            const shownItems = monitorQueue.slice(0, 6);
             
             shownItems.forEach(item => {
                 let purposeDisp = item.purpose;
                 if(item.subPurpose) purposeDisp = item.subPurpose;
+                const isPrio = (item.priority || 0) >= 10;
+                
                 monitorList.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200">
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200 ${isPrio ? 'border-l-4 border-l-purple-500' : ''}">
                         <div class="flex items-center gap-3 w-3/4">
                             <div class="w-6 h-6 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-mono">#${String(item.ticketNumber).padStart(3,'0')}</div>
                             <div class="font-bold text-sm text-slate-700 truncate">${item.name}</div>
@@ -1272,7 +1367,7 @@
                     </div>
                 `);
             });
-            if(waiting.length > 6) monitorList.insertAdjacentHTML('beforeend', `<div class="text-center text-xs text-slate-400 mt-1 italic">+${waiting.length - 6} more...</div>`);
+            if(monitorQueue.length > 6) monitorList.insertAdjacentHTML('beforeend', `<div class="text-center text-xs text-slate-400 mt-1 italic">+${monitorQueue.length - 6} more...</div>`);
         }
 
         function updateAnnouncements() {
@@ -1352,6 +1447,7 @@
             onSnapshot(qRef, (snap) => {
                 const items = [];
                 snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+                // Sort by ticketNumber initially, but updateUI handles Priority
                 items.sort((a, b) => a.ticketNumber - b.ticketNumber);
                 state.queue = items;
                 updateUI();
