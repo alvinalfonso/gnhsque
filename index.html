@@ -12,21 +12,21 @@
                 extend: {
                     colors: {
                         medical: {
-                            50: '#ecfdf5', // emerald-50
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            300: '#6ee7b7',
-                            400: '#34d399',
-                            500: '#10b981', // emerald-500
-                            600: '#059669', // emerald-600 (Primary "Dark Green but lighter")
-                            700: '#047857', // emerald-700
-                            800: '#065f46',
-                            900: '#064e3b',
+                            50: 'var(--c-50)',
+                            100: 'var(--c-100)',
+                            200: 'var(--c-200)',
+                            300: 'var(--c-300)',
+                            400: 'var(--c-400)',
+                            500: 'var(--c-500)',
+                            600: 'var(--c-600)',
+                            700: 'var(--c-700)',
+                            800: 'var(--c-800)',
+                            900: 'var(--c-900)',
                         },
                         accent: {
                             300: '#bef264',
-                            400: '#a3e635', // lime-400 ("Yellow Green")
-                            500: '#84cc16', // lime-500
+                            400: '#a3e635', 
+                            500: '#84cc16', 
                             600: '#65a30d',
                         }
                     }
@@ -38,6 +38,20 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
         
+        /* CSS Variables for Dynamic Theming */
+        :root {
+            --c-50: #ecfdf5;
+            --c-100: #d1fae5;
+            --c-200: #a7f3d0;
+            --c-300: #6ee7b7;
+            --c-400: #34d399;
+            --c-500: #10b981;
+            --c-600: #059669;
+            --c-700: #047857;
+            --c-800: #065f46;
+            --c-900: #064e3b;
+        }
+
         /* Enforce fixed full screen layout */
         html, body { 
             height: 100vh; 
@@ -79,8 +93,8 @@
             border-color: #84cc16; 
         }
         .serving-card-silent {
-            border-color: #059669; 
-            box-shadow: 0 0 15px -3px rgba(5, 150, 105, 0.2);
+            border-color: var(--c-600); 
+            box-shadow: 0 0 15px -3px rgba(0, 0, 0, 0.2);
         }
 
         @keyframes slideIn {
@@ -92,7 +106,7 @@
         .loader {
             border: 3px solid #e2e8f0; 
             border-radius: 50%;
-            border-top: 3px solid #059669; 
+            border-top: 3px solid var(--c-600); 
             width: 20px;
             height: 20px;
             animation: spin 1s linear infinite;
@@ -108,19 +122,24 @@
         /* Print Styles */
         @media print {
             body * { visibility: hidden; }
-            #printable-ticket, #printable-ticket * { visibility: visible; }
+            #printable-ticket, #printable-ticket * { 
+                visibility: visible; 
+            }
             #printable-ticket {
                 position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
+                left: 50%;
+                top: 20px;
+                transform: translateX(-50%);
+                width: 300px; /* Standard thermal printer width approx */
                 height: auto;
                 margin: 0;
                 padding: 20px;
-                background: white;
-                color: black;
-                border: none;
-                box-shadow: none;
+                background: white !important;
+                color: black !important;
+                border: 2px solid #000 !important;
+                box-shadow: none !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
             #kiosk-actions { display: none; }
         }
@@ -129,11 +148,12 @@
 <body class="bg-slate-50 text-slate-800 selection:bg-accent-300 selection:text-medical-900">
 
     <!-- Global Header (Fixed) -->
-    <nav class="bg-medical-700 border-b border-medical-800 p-3 shadow-lg fixed top-0 left-0 w-full z-[90] h-[60px] flex items-center box-border no-print">
+    <nav class="bg-medical-700 border-b border-medical-800 p-3 shadow-lg fixed top-0 left-0 w-full z-[90] h-[60px] flex items-center box-border no-print transition-colors duration-300">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-center px-4">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="app.navigate('home')">
-                <div class="bg-white p-1.5 rounded-lg shadow-lg group-hover:bg-slate-100 transition-colors">
-                    <i class="fa-solid fa-hospital text-lg text-medical-700"></i>
+                <div class="bg-white p-1.5 rounded-lg shadow-lg group-hover:bg-slate-100 transition-colors h-10 w-10 flex items-center justify-center overflow-hidden">
+                    <i id="header-icon" class="fa-solid fa-hospital text-lg text-medical-700"></i>
+                    <img id="header-logo" class="w-full h-full object-contain hidden" alt="Logo">
                 </div>
                 <div>
                     <h1 class="font-bold text-base leading-tight text-white group-hover:text-accent-300 transition-colors">Pampanga Medical Specialist Hospital</h1>
@@ -383,6 +403,32 @@
                             <button onclick="app.toggleSettings()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                         <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            <!-- Customization Section -->
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
+                                <label class="text-sm text-slate-700 font-bold block mb-2">Theme & Branding</label>
+                                
+                                <!-- Color Swatches -->
+                                <div>
+                                    <p class="text-[10px] text-slate-500 mb-1">Theme Color</p>
+                                    <div class="flex gap-2">
+                                        <button onclick="app.applyTheme('emerald')" class="w-8 h-8 rounded-full bg-[#10b981] ring-2 ring-offset-1 ring-transparent hover:ring-slate-300 focus:ring-slate-400"></button>
+                                        <button onclick="app.applyTheme('blue')" class="w-8 h-8 rounded-full bg-[#3b82f6] ring-2 ring-offset-1 ring-transparent hover:ring-slate-300 focus:ring-slate-400"></button>
+                                        <button onclick="app.applyTheme('indigo')" class="w-8 h-8 rounded-full bg-[#6366f1] ring-2 ring-offset-1 ring-transparent hover:ring-slate-300 focus:ring-slate-400"></button>
+                                        <button onclick="app.applyTheme('rose')" class="w-8 h-8 rounded-full bg-[#f43f5e] ring-2 ring-offset-1 ring-transparent hover:ring-slate-300 focus:ring-slate-400"></button>
+                                        <button onclick="app.applyTheme('amber')" class="w-8 h-8 rounded-full bg-[#f59e0b] ring-2 ring-offset-1 ring-transparent hover:ring-slate-300 focus:ring-slate-400"></button>
+                                    </div>
+                                </div>
+
+                                <!-- Logo Upload -->
+                                <div>
+                                    <p class="text-[10px] text-slate-500 mb-1">Header Logo</p>
+                                    <div class="flex items-center gap-2">
+                                        <input type="file" id="logo-input" accept="image/*" onchange="app.handleLogo(this)" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-medical-50 file:text-medical-700 hover:file:bg-medical-100">
+                                        <button onclick="app.removeLogo()" class="text-xs text-red-500 hover:text-red-700">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Printer Toggle -->
                             <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <div>
@@ -536,6 +582,15 @@
         const auth = getAuth(app_firebase);
         const db = getFirestore(app_firebase);
 
+        // --- Theme Data ---
+        const themes = {
+            emerald: { 50:'#ecfdf5', 100:'#d1fae5', 200:'#a7f3d0', 300:'#6ee7b7', 400:'#34d399', 500:'#10b981', 600:'#059669', 700:'#047857', 800:'#065f46', 900:'#064e3b' },
+            blue: { 50:'#eff6ff', 100:'#dbeafe', 200:'#bfdbfe', 300:'#93c5fd', 400:'#60a5fa', 500:'#3b82f6', 600:'#2563eb', 700:'#1d4ed8', 800:'#1e40af', 900:'#1e3a8a' },
+            indigo: { 50:'#eef2ff', 100:'#e0e7ff', 200:'#c7d2fe', 300:'#a5b4fc', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 800:'#3730a3', 900:'#312e81' },
+            rose: { 50:'#fff1f2', 100:'#ffe4e6', 200:'#fecdd3', 300:'#fda4af', 400:'#fb7185', 500:'#f43f5e', 600:'#e11d48', 700:'#be123c', 800:'#9f1239', 900:'#881337' },
+            amber: { 50:'#fffbeb', 100:'#fef3c7', 200:'#fde68a', 300:'#fcd34d', 400:'#fbbf24', 500:'#f59e0b', 600:'#d97706', 700:'#b45309', 800:'#92400e', 900:'#78350f' }
+        };
+
         const state = {
             user: null,
             settings: { 
@@ -544,6 +599,8 @@
                 windowCount: 4, 
                 queueDate: "",
                 printEnabled: true,
+                theme: 'emerald',
+                logoData: null,
                 windowConfigs: { 1: ['All'], 2: ['All'], 3: ['All'], 4: ['All'] },
                 windowNames: { 1: "Station 1", 2: "Station 2", 3: "Station 3", 4: "Station 4" }
             },
@@ -576,6 +633,57 @@
                     if(viewId === 'kiosk') app.renderKioskPurposes();
                 }
                 state.currentView = viewId;
+            },
+
+            // --- Customization ---
+            applyTheme: async (colorName) => {
+                const palette = themes[colorName];
+                if (!palette) return;
+                const root = document.documentElement;
+                Object.keys(palette).forEach(key => {
+                    root.style.setProperty(`--c-${key}`, palette[key]);
+                });
+                // If saving setting
+                if(state.settings.theme !== colorName) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { theme: colorName });
+                }
+            },
+
+            handleLogo: (input) => {
+                if (input.files && input.files[0]) {
+                    const file = input.files[0];
+                    if (file.size > 500000) { // 500KB limit
+                        app.showToast("Image too large (Max 500KB)");
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        const base64 = e.target.result;
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { logoData: base64 });
+                        app.showToast("Logo updated");
+                    }
+                    reader.readAsDataURL(file);
+                }
+            },
+
+            removeLogo: async () => {
+                if(confirm("Remove custom logo?")) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config'), { logoData: null });
+                    document.getElementById('logo-input').value = "";
+                }
+            },
+
+            updateHeader: () => {
+                const logoImg = document.getElementById('header-logo');
+                const logoIcon = document.getElementById('header-icon');
+                if (state.settings.logoData) {
+                    logoImg.src = state.settings.logoData;
+                    logoImg.classList.remove('hidden');
+                    logoIcon.classList.add('hidden');
+                } else {
+                    logoImg.classList.add('hidden');
+                    logoIcon.classList.remove('hidden');
+                }
             },
 
             // --- Kiosk ---
@@ -747,7 +855,11 @@
                     app.navigate('admin-dashboard');
                 } else { document.getElementById('pin-error').classList.remove('hidden'); }
             },
-            logoutAdmin: () => app.navigate('home'),
+            logoutAdmin: () => {
+                if(confirm("Are you sure you want to sign out?")) {
+                    app.navigate('home');
+                }
+            },
             toggleSettings: () => {
                 const el = document.getElementById('admin-settings-panel');
                 el.classList.toggle('hidden');
@@ -1008,7 +1120,7 @@
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button onclick="app.skipServing('${ticket.id}', ${ticket.skipCount || 0})" class="bg-orange-100 text-orange-700 hover:bg-orange-200 py-1 rounded text-xs font-bold">Skip</button>
+                                <button onclick="app.skipServing('${ticket.id}', ${ticket.skipCount || 0})" class="bg-orange-100 text-orange-700 hover:bg-orange-200 py-1 rounded text-xs font-bold">No Show (Skip)</button>
                                 <button onclick="app.openTransferModal('${ticket.id}')" class="bg-amber-100 text-amber-700 hover:bg-amber-200 py-1 rounded text-xs font-bold">Transfer</button>
                             </div>
                              <button onclick="app.stopAlarm('${ticket.id}')" class="w-full mt-2 ${isAlarm ? 'bg-red-500 hover:bg-red-600 animate-pulse text-white' : 'bg-slate-100 text-slate-500'} py-1 rounded text-xs font-bold transition-all" ${!isAlarm ? 'disabled' : ''}>${isAlarm ? 'Stop Calling' : 'Calling...'}</button>
@@ -1196,7 +1308,10 @@
             const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'config');
             onSnapshot(settingsRef, (snap) => {
                 if (snap.exists()) {
-                    state.settings = { ...state.settings, ...snap.data() };
+                    const data = snap.data();
+                    state.settings = { ...state.settings, ...data };
+                    if(data.theme) app.applyTheme(data.theme);
+                    app.updateHeader();
                     updateUI();
                 } else { setDoc(settingsRef, state.settings); }
             });
