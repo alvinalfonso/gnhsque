@@ -119,12 +119,15 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* --- PRINT STYLES REVISION --- */
+        /* --- PRINT STYLES REVISION (57mm x 30mm support) --- */
         @media print {
-            @page { margin: 0; size: auto; }
+            @page { 
+                margin: 0; 
+                /* Optimized for standard thermal paper width */
+                size: 57mm auto; 
+            }
             body, html { 
                 width: 100%; 
-                height: 100%; 
                 margin: 0; 
                 padding: 0; 
                 background: white;
@@ -136,17 +139,20 @@
                 position: fixed !important;
                 top: 0 !important;
                 left: 0 !important;
-                width: 100% !important; /* Adjust based on printer paper width if needed, usually 100% of body is fine */
-                max-width: 300px !important; /* Standard thermal printer width constraint */
-                margin: 0 auto !important;
-                padding: 10px 0 !important;
+                /* Set width to 57mm approx */
+                width: 57mm !important; 
+                max-width: 57mm !important;
+                margin: 0 !important;
+                padding: 5px 2px !important;
                 background: white !important;
                 color: black !important;
                 border: none !important;
                 box-shadow: none !important;
                 height: auto !important;
                 overflow: visible !important;
-                font-family: 'Courier New', monospace !important; /* Monospace prints clearer on thermal */
+                font-family: 'Arial', sans-serif !important;
+                line-height: 1.1;
+                page-break-after: always;
             }
             
             #printable-ticket * {
@@ -155,10 +161,18 @@
                 overflow: visible !important;
                 color: black !important;
             }
+            
+            /* Compact print layout */
+            #printable-ticket .ticket-header { font-size: 8px !important; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 2px; }
+            #printable-ticket .ticket-num-label { font-size: 6px !important; text-transform: uppercase; }
+            #printable-ticket .ticket-number { font-size: 24px !important; font-weight: 900; line-height: 1; margin: 2px 0; }
+            #printable-ticket .ticket-info { font-size: 8px !important; margin-bottom: 2px; word-wrap: break-word; }
+            #printable-ticket .ticket-footer { font-size: 6px !important; margin-top: 4px; text-align: center; font-style: italic; }
+            #printable-ticket hr { border-top: 1px dashed black !important; margin: 4px 0 !important; }
 
             /* Reset flex/grid layouts for print to block */
             #printable-ticket .flex { display: block !important; }
-            #printable-ticket .text-right { text-align: right !important; }
+            #printable-ticket .text-right { text-align: center !important; } /* Center everything for small paper */
             #printable-ticket .text-center { text-align: center !important; }
             
             /* Hide non-print UI elements */
@@ -247,6 +261,18 @@
                     <div class="p-6 space-y-4">
                         <div id="kiosk-form-container" class="no-print">
                             <div class="space-y-4">
+                                <!-- Priority Checkbox -->
+                                <label class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl cursor-pointer hover:bg-red-100 transition-colors group">
+                                    <div class="relative flex items-center">
+                                        <input type="checkbox" id="kiosk-priority" class="peer w-6 h-6 border-2 border-red-300 rounded text-red-600 focus:ring-red-500 transition-all checked:bg-red-600 checked:border-red-600">
+                                    </div>
+                                    <div>
+                                        <span class="font-bold text-red-700 block text-sm group-hover:text-red-800">Priority Lane</span>
+                                        <span class="text-[10px] text-red-500 font-semibold uppercase tracking-wide">Senior Citizen, PWD, or Pregnant</span>
+                                    </div>
+                                    <i class="fa-solid fa-wheelchair text-red-200 text-2xl ml-auto group-hover:text-red-300"></i>
+                                </label>
+
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Visitor Name <span class="text-red-500">*</span></label>
                                     <input type="text" id="patient-name" class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-1 focus:ring-medical-500 focus:border-medical-500 outline-none transition-all placeholder-slate-400" placeholder="Required" autocomplete="off">
@@ -288,27 +314,25 @@
                             
                             <!-- Printable Area -->
                             <div id="printable-ticket" class="bg-white text-black p-4 rounded-xl border-t-4 border-medical-500 relative mx-4 shadow-xl border-x border-b border-slate-100">
-                                <div class="text-center mb-4 border-b border-black pb-2">
-                                    <p class="text-xs font-bold uppercase text-black">Pampanga Medical</p>
-                                    <p class="text-xs font-bold uppercase text-black">Specialist Hospital</p>
-                                    <p class="text-[10px] mt-1">Queueing Ticket</p>
+                                <div class="ticket-header">
+                                    <div>Pampanga Medical</div>
+                                    <div>Specialist Hospital</div>
+                                    <div style="font-size: 6px; margin-top: 2px;">QUEUE TICKET</div>
                                 </div>
-                                <div class="flex justify-between items-center border-b-2 border-dashed border-black pb-3 mb-3">
-                                    <div class="text-left">
-                                        <div class="text-[10px] uppercase tracking-widest font-bold">Queue No.</div>
-                                        <div class="text-4xl font-mono font-black text-black" id="new-ticket-number">#000</div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="text-[10px] uppercase tracking-widest font-bold">Time</div>
-                                        <div class="text-xl font-bold text-black" id="ticket-time">--:--</div>
-                                    </div>
+                                <hr>
+                                <div class="text-center my-2">
+                                    <div class="ticket-num-label">YOUR NUMBER</div>
+                                    <div class="ticket-number" id="new-ticket-number">#000</div>
+                                    <div style="font-size: 8px;" id="ticket-time">--:--</div>
                                 </div>
+                                <hr>
                                 <div class="text-center space-y-1">
-                                    <div class="text-lg font-bold text-black break-words uppercase" id="ticket-name-display">Name</div>
-                                    <div class="text-xs text-black" id="ticket-patient-display"></div>
-                                    <div class="text-sm font-bold text-black border border-black inline-block px-2 py-1 rounded mt-1" id="ticket-purpose-display">Purpose</div>
+                                    <div class="ticket-info font-bold uppercase" id="ticket-name-display">Name</div>
+                                    <div class="ticket-info" id="ticket-patient-display"></div>
+                                    <div class="ticket-info font-bold border border-black inline-block px-1 rounded mt-1" id="ticket-purpose-display">Purpose</div>
+                                    <div class="ticket-info font-bold text-red-600 hidden" id="ticket-priority-badge">PRIORITY LANE</div>
                                 </div>
-                                <div class="mt-4 text-[10px] text-center italic">Please wait for your number to be called.</div>
+                                <div class="ticket-footer">Please wait for your number.</div>
                             </div>
 
                             <div id="kiosk-actions" class="flex flex-col gap-2 no-print">
@@ -723,6 +747,8 @@
                 const first = container.querySelector('button');
                 if(first) first.click();
                 app.updateKioskButton();
+                // Reset Checkbox
+                document.getElementById('kiosk-priority').checked = false;
             },
 
             updateKioskButton: () => {
@@ -789,6 +815,7 @@
             getTicket: async () => {
                 const name = document.getElementById('patient-name').value.trim();
                 const actualName = document.getElementById('patient-actual-name').value.trim();
+                const isPriority = document.getElementById('kiosk-priority').checked;
                 let purpose = document.getElementById('selected-purpose').value;
                 let subPurpose = document.getElementById('selected-sub-purpose').value;
 
@@ -825,7 +852,9 @@
                         purpose: purpose, 
                         subPurpose: subPurpose, 
                         status: 'waiting', 
-                        priority: 0, // 0 = Standard, 10 = Endorsement
+                        priority: 0, // Standard base
+                        isPriority: isPriority, // Flag for Priority Lane
+                        requiresPriorityScreening: isPriority, // If true, only visible to Priority Lane windows
                         skipCount: 0,
                         assignedWindow: null, // For transfers/endorsements
                         transferNote: '', 
@@ -843,6 +872,12 @@
                     if(subPurpose) displayPurpose += ` - ${subPurpose}`;
                     document.getElementById('ticket-purpose-display').textContent = displayPurpose;
                     
+                    if(isPriority) {
+                        document.getElementById('ticket-priority-badge').classList.remove('hidden');
+                    } else {
+                        document.getElementById('ticket-priority-badge').classList.add('hidden');
+                    }
+
                     document.getElementById('new-ticket-number').textContent = `#${String(newTicketNum).padStart(3, '0')}`;
                     document.getElementById('ticket-time').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     
@@ -943,26 +978,46 @@
                 if(confirm("Delete this announcement?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'announcements', id));
             },
 
-            // --- Queue Logic ---
+            // --- Queue Logic (Updated for Priority) ---
             callNextForWindow: async (windowNum, excludeId = null, suppressToast = false) => {
                 const config = state.settings.windowConfigs?.[windowNum] || ['All'];
-                const allowed = config.includes('All') ? null : config;
+                // Logic:
+                // If config includes 'Priority Lane', this window acts as the screening window.
+                // It should ONLY pick up people with `requiresPriorityScreening == true` (and assigned is null).
+                // Regular windows (not Priority Lane) should ONLY pick up people where `requiresPriorityScreening == false`
+                // OR `assignedWindow == thisWindow` (Endorsements overrides screening check).
 
-                // Priority Logic:
-                // 1. Filter by status 'waiting'.
-                // 2. Filter by assignment (matches window OR no assignment but matches purpose).
+                const isPriorityLaneWindow = config.includes('Priority Lane');
+                const allowedPurposes = config.includes('All') ? null : config;
+
                 let candidates = state.queue.filter(item => {
                     if (excludeId && item.id === excludeId) return false;
                     if (item.status !== 'waiting') return false;
                     
-                    // Specific assignment (Transfer/Endorsement)
-                    if (item.assignedWindow) {
-                        return String(item.assignedWindow) === String(windowNum);
+                    // 1. Direct Assignment (Endorsements/Transfers)
+                    // If assigned to me, I take them regardless of screening status (Endorsement implies screening done)
+                    if (item.assignedWindow && String(item.assignedWindow) === String(windowNum)) {
+                        return true;
+                    }
+
+                    // 2. Priority Lane Screening Logic
+                    if (isPriorityLaneWindow) {
+                        // Takes unscreened priority folks + assigned ones (handled above)
+                        // Must be priority AND not yet screened/assigned
+                        return item.isPriority && item.requiresPriorityScreening && !item.assignedWindow;
+                    } 
+
+                    // 3. Regular Window Logic
+                    // Must NOT take unscreened priority folks
+                    if (item.requiresPriorityScreening) return false;
+
+                    // If not assigned to me specifically, check purpose match
+                    if (!item.assignedWindow) {
+                        if (!allowedPurposes) return true; // All
+                        return allowedPurposes.includes(item.purpose);
                     }
                     
-                    // General pool
-                    if (!allowed) return true;
-                    return allowed.includes(item.purpose);
+                    return false;
                 });
 
                 if (candidates.length === 0) { 
@@ -970,12 +1025,14 @@
                     return; 
                 }
 
-                // Sorting: High Priority First (Endorsements), then Low Priority, then Ticket Number (FIFO)
+                // Sorting: 
+                // Priority DESC (20=Endorsed to Priority, 10=Endorsed, 0=Standard)
+                // TicketNumber ASC (FIFO)
                 candidates.sort((a, b) => {
                     const pA = a.priority || 0;
                     const pB = b.priority || 0;
-                    if (pA !== pB) return pB - pA; // Descending priority
-                    return a.ticketNumber - b.ticketNumber; // Ascending ticket number
+                    if (pA !== pB) return pB - pA; // Higher priority first
+                    return a.ticketNumber - b.ticketNumber; // FIFO
                 });
 
                 const nextItem = candidates[0];
@@ -984,7 +1041,7 @@
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', nextItem.id), { 
                         status: 'serving', 
                         window: windowNum, 
-                        assignedWindow: null, // Clear assignment
+                        assignedWindow: null, // Clear assignment once called
                         calledAt: serverTimestamp(), 
                         alarmPlaying: true 
                     });
@@ -999,7 +1056,7 @@
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), { alarmPlaying: false });
             },
 
-            // --- New Features: Skip, Transfer, Endorse ---
+            // --- Features: Skip, Transfer, Endorse ---
             skipServing: async (id, currentSkipCount, windowNum) => {
                 const newCount = (currentSkipCount || 0) + 1;
                 const updates = {};
@@ -1041,13 +1098,13 @@
                 if (type === 'endorse') {
                     titleEl.innerHTML = `<i class="fa-solid fa-user-nurse text-purple-500"></i> Endorse Patient`;
                     btnEl.className = "flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-sm shadow-md";
-                    btnEl.innerText = "Endorse (High Priority)";
-                    infoEl.innerText = "Endorsed patients will be placed at the front of the target station's queue (next to be called).";
+                    btnEl.innerText = "Endorse (Priority)";
+                    infoEl.innerText = "Patient will be placed next in line at the target station (Priority Stack).";
                 } else {
                     titleEl.innerHTML = `<i class="fa-solid fa-arrow-right-arrow-left text-amber-500"></i> Transfer Patient`;
                     btnEl.className = "flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-sm shadow-md";
                     btnEl.innerText = "Transfer (Standard)";
-                    infoEl.innerText = "Transferred patients will join the end of the target station's queue.";
+                    infoEl.innerText = "Patient will join the end of the target station's queue.";
                 }
 
                 document.getElementById('transfer-note').value = '';
@@ -1062,8 +1119,11 @@
 
                 if(!targetWin) return;
 
-                // Endorsement gets Priority 10, Normal Transfer gets Priority 0
-                const priority = (type === 'endorse') ? 10 : 0;
+                // Priority Logic:
+                // Endorse = Priority 20 (Higher than standard endorses if any, or just very high).
+                // Transfer = Priority 0 (Standard).
+                // Also clear 'requiresPriorityScreening' because the staff has now processed them.
+                const priority = (type === 'endorse') ? 20 : 0;
                 const notePrefix = (type === 'endorse') ? '[ENDORSED] ' : '';
 
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), {
@@ -1071,6 +1131,7 @@
                     window: null,
                     assignedWindow: targetWin,
                     priority: priority,
+                    requiresPriorityScreening: false, // Cleared for target window
                     transferNote: notePrefix + note,
                     alarmPlaying: false
                 });
@@ -1135,8 +1196,14 @@
             for(let i=1; i<=state.settings.windowCount; i++) {
                 const current = state.settings.windowConfigs?.[i]?.[0] || 'All';
                 const currentName = state.settings.windowNames?.[i] || `Station ${i}`;
+                
+                // Add Priority Lane option specifically for Admin
                 let options = `<option value="All">All Services</option>`;
-                state.purposes.forEach(p => { if(p !== 'Others') options += `<option value="${p}" ${current === p ? 'selected' : ''}>${p}</option>`; });
+                options += `<option value="Priority Lane" ${current === 'Priority Lane' ? 'selected' : ''} class="font-bold text-red-600">Priority Lane (Screening)</option>`;
+                
+                state.purposes.forEach(p => { 
+                    if(p !== 'Others') options += `<option value="${p}" ${current === p ? 'selected' : ''}>${p}</option>`; 
+                });
 
                 container.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center justify-between text-xs text-slate-500 bg-slate-50 p-2 rounded mb-1">
@@ -1176,13 +1243,18 @@
                     if(ticket.subPurpose) displayPurpose += ` (${ticket.subPurpose})`;
                     if(ticket.transferNote) displayPurpose += `<br><span class="text-amber-600">Note: ${ticket.transferNote}</span>`;
 
-                    // Check if Endorsement
+                    // Check if Priority
                     const isEndorsement = (ticket.priority || 0) >= 10;
-                    const cardBorder = isEndorsement ? 'border-purple-500' : 'border-medical-500';
+                    const isPriorityScreening = ticket.isPriority; 
+                    let cardBorder = 'border-medical-500';
+                    if(isEndorsement) cardBorder = 'border-purple-500';
+                    else if (isPriorityScreening) cardBorder = 'border-red-500';
 
                     adminCounters.insertAdjacentHTML('beforeend', `
                         <div class="bg-white border ${cardBorder} p-3 rounded-xl shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                             ${isEndorsement ? '<div class="absolute top-0 right-0 bg-purple-500 text-white text-[9px] px-2 py-0.5 rounded-bl">ENDORSED</div>' : ''}
+                            ${!isEndorsement && isPriorityScreening ? '<div class="absolute top-0 right-0 bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-bl">PRIORITY</div>' : ''}
+                            
                             <div class="flex justify-between items-start">
                                 <div class="min-w-0 pr-2 flex-1">
                                     <div class="flex items-center gap-1 mb-0.5">
@@ -1268,7 +1340,8 @@
                     if(item.assignedWindow) displayPurpose += `<span class="block text-amber-600 text-[10px] font-bold">To Stn ${item.assignedWindow}</span>`;
                     
                     let priorityBadge = '';
-                    if ((item.priority || 0) >= 10) priorityBadge = '<span class="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold uppercase ml-1">Priority</span>';
+                    if ((item.priority || 0) >= 10) priorityBadge = '<span class="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold uppercase ml-1">Endorsed</span>';
+                    else if (item.isPriority && item.requiresPriorityScreening) priorityBadge = '<span class="text-[9px] bg-red-100 text-red-700 px-1 rounded font-bold uppercase ml-1">Priority Lane</span>';
 
                     let displayName = item.name;
                     if(item.patientName) displayName += `<br><span class="text-[10px] text-slate-400">Pt: ${item.patientName}</span>`;
@@ -1279,7 +1352,7 @@
                     }
 
                     adminList.insertAdjacentHTML('beforeend', `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0 ${item.priority >= 10 ? 'bg-purple-50/50' : ''}">
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0 ${item.priority >= 10 ? 'bg-purple-50/50' : (item.isPriority && item.requiresPriorityScreening ? 'bg-red-50/50' : '')}">
                             <td class="p-3 font-medium text-slate-800 leading-tight">
                                 ${displayName}
                                 <div class="text-[10px] font-mono text-slate-400">#${String(item.ticketNumber).padStart(3,'0')} ${priorityBadge}</div>
@@ -1356,9 +1429,14 @@
                 let purposeDisp = item.purpose;
                 if(item.subPurpose) purposeDisp = item.subPurpose;
                 const isPrio = (item.priority || 0) >= 10;
+                const isLane = item.isPriority;
                 
+                let borderClass = 'border-slate-200';
+                if(isPrio) borderClass = 'border-l-4 border-l-purple-500';
+                else if(isLane) borderClass = 'border-l-4 border-l-red-500';
+
                 monitorList.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200 ${isPrio ? 'border-l-4 border-l-purple-500' : ''}">
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded border ${borderClass}">
                         <div class="flex items-center gap-3 w-3/4">
                             <div class="w-6 h-6 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-mono">#${String(item.ticketNumber).padStart(3,'0')}</div>
                             <div class="font-bold text-sm text-slate-700 truncate">${item.name}</div>
