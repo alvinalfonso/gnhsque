@@ -96,6 +96,17 @@
             border-color: var(--c-600); 
             box-shadow: 0 0 15px -3px rgba(0, 0, 0, 0.2);
         }
+        
+        /* New Priority Animation */
+        @keyframes priority-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); border-color: #ef4444; } 
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); border-color: #f87171; }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); border-color: #ef4444; }
+        }
+        .priority-serving-animation {
+            animation: priority-pulse 2s infinite;
+            background: #fef2f2;
+        }
 
         @keyframes slideIn {
             from { transform: translateY(20px); opacity: 0; }
@@ -845,6 +856,10 @@
                     const newTicketNum = state.settings.lastTicket + 1;
                     const queueRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'queue_items'));
                     
+                    // Priority Logic Update: Priority Lane users get base priority score of 10
+                    // Standard users get 0. Endorsed users will get 20 (set later).
+                    const priorityScore = isPriority ? 10 : 0;
+
                     await setDoc(queueRef, {
                         ticketNumber: newTicketNum, 
                         name: name,
@@ -852,9 +867,8 @@
                         purpose: purpose, 
                         subPurpose: subPurpose, 
                         status: 'waiting', 
-                        priority: 0, // Standard base
-                        isPriority: isPriority, // Flag for Priority Lane
-                        requiresPriorityScreening: isPriority, // If true, only visible to Priority Lane windows
+                        priority: priorityScore, 
+                        isPriority: isPriority, 
                         skipCount: 0,
                         assignedWindow: null, // For transfers/endorsements
                         transferNote: '', 
@@ -978,39 +992,36 @@
                 if(confirm("Delete this announcement?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'announcements', id));
             },
 
-            // --- Queue Logic (Updated for Priority) ---
+            // --- Queue Logic (Enhanced Priority) ---
             callNextForWindow: async (windowNum, excludeId = null, suppressToast = false) => {
                 const config = state.settings.windowConfigs?.[windowNum] || ['All'];
-                // Logic:
-                // If config includes 'Priority Lane', this window acts as the screening window.
-                // It should ONLY pick up people with `requiresPriorityScreening == true` (and assigned is null).
-                // Regular windows (not Priority Lane) should ONLY pick up people where `requiresPriorityScreening == false`
-                // OR `assignedWindow == thisWindow` (Endorsements overrides screening check).
+                
+                // --- Logic Update ---
+                // We use the `priority` score (0=Standard, 10=PriorityLane, 20=Endorsed) to sort.
+                // 1. If config includes 'Priority Lane', we Strictly filter for `isPriority === true`.
+                // 2. If config includes 'All' or specific purpose, we include any matching purpose.
+                //    Because we sort by Priority Score, Priority Lane people (Score 10) will AUTOMATICALLY come first.
+                //    We removed `requiresPriorityScreening` restriction so regular windows can now see priority people at the top of their list.
 
-                const isPriorityLaneWindow = config.includes('Priority Lane');
+                const isStrictPriorityWindow = config.includes('Priority Lane');
                 const allowedPurposes = config.includes('All') ? null : config;
 
                 let candidates = state.queue.filter(item => {
                     if (excludeId && item.id === excludeId) return false;
                     if (item.status !== 'waiting') return false;
                     
-                    // 1. Direct Assignment (Endorsements/Transfers)
-                    // If assigned to me, I take them regardless of screening status (Endorsement implies screening done)
+                    // 1. Direct Assignment (Endorsements/Transfers) - Always top priority
                     if (item.assignedWindow && String(item.assignedWindow) === String(windowNum)) {
                         return true;
                     }
 
-                    // 2. Priority Lane Screening Logic
-                    if (isPriorityLaneWindow) {
-                        // Takes unscreened priority folks + assigned ones (handled above)
-                        // Must be priority AND not yet screened/assigned
-                        return item.isPriority && item.requiresPriorityScreening && !item.assignedWindow;
+                    // 2. Strict Priority Lane Window
+                    if (isStrictPriorityWindow) {
+                        // Takes only priority people who are not assigned elsewhere
+                        return item.isPriority && !item.assignedWindow;
                     } 
 
                     // 3. Regular Window Logic
-                    // Must NOT take unscreened priority folks
-                    if (item.requiresPriorityScreening) return false;
-
                     // If not assigned to me specifically, check purpose match
                     if (!item.assignedWindow) {
                         if (!allowedPurposes) return true; // All
@@ -1026,11 +1037,11 @@
                 }
 
                 // Sorting: 
-                // Priority DESC (20=Endorsed to Priority, 10=Endorsed, 0=Standard)
+                // Priority DESC (20=Endorsed, 10=PriorityLane, 0=Standard)
                 // TicketNumber ASC (FIFO)
                 candidates.sort((a, b) => {
-                    const pA = a.priority || 0;
-                    const pB = b.priority || 0;
+                    const pA = (a.priority !== undefined) ? a.priority : (a.isPriority ? 10 : 0);
+                    const pB = (b.priority !== undefined) ? b.priority : (b.isPriority ? 10 : 0);
                     if (pA !== pB) return pB - pA; // Higher priority first
                     return a.ticketNumber - b.ticketNumber; // FIFO
                 });
@@ -1121,9 +1132,18 @@
 
                 // Priority Logic:
                 // Endorse = Priority 20 (Higher than standard endorses if any, or just very high).
-                // Transfer = Priority 0 (Standard).
-                // Also clear 'requiresPriorityScreening' because the staff has now processed them.
-                const priority = (type === 'endorse') ? 20 : 0;
+                // Transfer = Priority 0 (Standard, unless they were already Priority Lane).
+                // We keep original priority if it's just a transfer, unless it's an endorse.
+                // However, simpler logic: Transfer resets to 0 (or keeps 10 if isPriority), Endorse sets to 20.
+                
+                // Let's lookup the item to check isPriority
+                const item = state.queue.find(q => q.id === id);
+                const isPrio = item?.isPriority || false;
+                
+                let priority = 0;
+                if(type === 'endorse') priority = 20;
+                else priority = isPrio ? 10 : 0; // Maintain priority status on transfer
+
                 const notePrefix = (type === 'endorse') ? '[ENDORSED] ' : '';
 
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id), {
@@ -1131,7 +1151,6 @@
                     window: null,
                     assignedWindow: targetWin,
                     priority: priority,
-                    requiresPriorityScreening: false, // Cleared for target window
                     transferNote: notePrefix + note,
                     alarmPlaying: false
                 });
@@ -1244,16 +1263,16 @@
                     if(ticket.transferNote) displayPurpose += `<br><span class="text-amber-600">Note: ${ticket.transferNote}</span>`;
 
                     // Check if Priority
-                    const isEndorsement = (ticket.priority || 0) >= 10;
-                    const isPriorityScreening = ticket.isPriority; 
+                    const isEndorsement = (ticket.priority || 0) >= 20;
+                    const isPriority = ticket.isPriority; 
                     let cardBorder = 'border-medical-500';
                     if(isEndorsement) cardBorder = 'border-purple-500';
-                    else if (isPriorityScreening) cardBorder = 'border-red-500';
+                    else if (isPriority) cardBorder = 'border-red-500';
 
                     adminCounters.insertAdjacentHTML('beforeend', `
                         <div class="bg-white border ${cardBorder} p-3 rounded-xl shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                             ${isEndorsement ? '<div class="absolute top-0 right-0 bg-purple-500 text-white text-[9px] px-2 py-0.5 rounded-bl">ENDORSED</div>' : ''}
-                            ${!isEndorsement && isPriorityScreening ? '<div class="absolute top-0 right-0 bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-bl">PRIORITY</div>' : ''}
+                            ${!isEndorsement && isPriority ? '<div class="absolute top-0 right-0 bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-bl">PRIORITY</div>' : ''}
                             
                             <div class="flex justify-between items-start">
                                 <div class="min-w-0 pr-2 flex-1">
@@ -1324,8 +1343,8 @@
             // Sort waiting list by priority then ticket number for display
             if (state.adminTab === 'waiting') {
                 listToShow.sort((a, b) => {
-                    const pA = a.priority || 0;
-                    const pB = b.priority || 0;
+                    const pA = (a.priority !== undefined) ? a.priority : (a.isPriority ? 10 : 0);
+                    const pB = (b.priority !== undefined) ? b.priority : (b.isPriority ? 10 : 0);
                     if (pA !== pB) return pB - pA;
                     return a.ticketNumber - b.ticketNumber;
                 });
@@ -1340,8 +1359,8 @@
                     if(item.assignedWindow) displayPurpose += `<span class="block text-amber-600 text-[10px] font-bold">To Stn ${item.assignedWindow}</span>`;
                     
                     let priorityBadge = '';
-                    if ((item.priority || 0) >= 10) priorityBadge = '<span class="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold uppercase ml-1">Endorsed</span>';
-                    else if (item.isPriority && item.requiresPriorityScreening) priorityBadge = '<span class="text-[9px] bg-red-100 text-red-700 px-1 rounded font-bold uppercase ml-1">Priority Lane</span>';
+                    if ((item.priority || 0) >= 20) priorityBadge = '<span class="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold uppercase ml-1">Endorsed</span>';
+                    else if (item.isPriority) priorityBadge = '<span class="text-[9px] bg-red-100 text-red-700 px-1 rounded font-bold uppercase ml-1">Priority Lane</span>';
 
                     let displayName = item.name;
                     if(item.patientName) displayName += `<br><span class="text-[10px] text-slate-400">Pt: ${item.patientName}</span>`;
@@ -1352,7 +1371,7 @@
                     }
 
                     adminList.insertAdjacentHTML('beforeend', `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0 ${item.priority >= 10 ? 'bg-purple-50/50' : (item.isPriority && item.requiresPriorityScreening ? 'bg-red-50/50' : '')}">
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0 ${item.priority >= 20 ? 'bg-purple-50/50' : (item.isPriority ? 'bg-red-50/50' : '')}">
                             <td class="p-3 font-medium text-slate-800 leading-tight">
                                 ${displayName}
                                 <div class="text-[10px] font-mono text-slate-400">#${String(item.ticketNumber).padStart(3,'0')} ${priorityBadge}</div>
@@ -1387,14 +1406,31 @@
                     const isAlarm = ticket.alarmPlaying;
                     let purposeText = ticket.purpose;
                     if(ticket.subPurpose) purposeText = ticket.subPurpose; 
-                    const bgClass = isAlarm ? 'bg-accent-50' : 'bg-medical-50';
+                    
+                    const isPriority = ticket.isPriority;
+                    
+                    let bgClass = isAlarm ? 'bg-accent-50' : 'bg-medical-50';
+                    let borderClass = 'border-medical-600';
+                    let animClass = isAlarm ? 'serving-card-animation' : 'serving-card-silent';
+                    
+                    // Live Screen Priority Improvement
+                    if (isPriority) {
+                         bgClass = isAlarm ? 'bg-red-50' : 'bg-red-50';
+                         borderClass = 'border-red-500';
+                         animClass = isAlarm ? 'priority-serving-animation' : 'border-red-500 shadow-md shadow-red-100';
+                    } else if (isAlarm) {
+                        borderClass = 'border-accent-500';
+                    }
 
                     monitorGrid.insertAdjacentHTML('beforeend', `
-                        <div class="${isAlarm ? `${bgClass} border-accent-500 serving-card-animation` : `${bgClass} border-medical-600 serving-card-silent`} border-l-4 rounded-xl p-4 relative overflow-hidden flex flex-col justify-between transition-all shadow-md ${itemHeightClass}">
+                        <div class="${bgClass} ${borderClass} ${animClass} border-l-4 rounded-xl p-4 relative overflow-hidden flex flex-col justify-between transition-all shadow-md ${itemHeightClass}">
+                            ${isPriority ? '<div class="absolute top-0 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-bl font-bold tracking-wider z-10">PRIORITY LANE</div>' : ''}
                             <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">${winName}</div>
                             <div class="text-3xl md:text-4xl font-black text-slate-800 leading-tight line-clamp-1">${ticket.name}</div>
                             <div class="flex justify-between items-end border-t border-slate-200/50 pt-2">
-                                <div class="text-xs font-bold text-medical-600 uppercase truncate max-w-[70%]">${purposeText}</div>
+                                <div class="text-xs font-bold ${isPriority ? 'text-red-700' : 'text-medical-600'} uppercase truncate max-w-[70%] flex items-center gap-1">
+                                    ${isPriority ? '<i class="fa-solid fa-wheelchair"></i>' : ''} ${purposeText}
+                                </div>
                                 <div class="text-xl font-mono text-slate-400">#${String(ticket.ticketNumber).padStart(3,'0')}</div>
                             </div>
                         </div>
@@ -1416,8 +1452,8 @@
             
             // Re-sort for monitor (Priority > FIFO)
             const monitorQueue = [...waiting].sort((a, b) => {
-                const pA = a.priority || 0;
-                const pB = b.priority || 0;
+                const pA = (a.priority !== undefined) ? a.priority : (a.isPriority ? 10 : 0);
+                const pB = (b.priority !== undefined) ? b.priority : (b.isPriority ? 10 : 0);
                 if (pA !== pB) return pB - pA;
                 return a.ticketNumber - b.ticketNumber;
             });
@@ -1428,20 +1464,29 @@
             shownItems.forEach(item => {
                 let purposeDisp = item.purpose;
                 if(item.subPurpose) purposeDisp = item.subPurpose;
-                const isPrio = (item.priority || 0) >= 10;
+                const isPrio = (item.priority || 0) >= 20;
                 const isLane = item.isPriority;
                 
-                let borderClass = 'border-slate-200';
-                if(isPrio) borderClass = 'border-l-4 border-l-purple-500';
-                else if(isLane) borderClass = 'border-l-4 border-l-red-500';
+                let rowClass = 'bg-slate-50 border-slate-200';
+                let iconHtml = `<div class="w-6 h-6 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-mono">#${String(item.ticketNumber).padStart(3,'0')}</div>`;
+                
+                // Enhanced Priority Sign
+                if(isPrio) {
+                     rowClass = 'bg-purple-50 border-purple-300 border-l-4 border-l-purple-500';
+                     iconHtml = `<div class="w-6 h-6 rounded bg-purple-100 text-purple-600 border border-purple-200 flex items-center justify-center text-[10px] font-mono font-bold"><i class="fa-solid fa-star"></i></div>`;
+                }
+                else if(isLane) {
+                    rowClass = 'bg-red-50 border-red-300 border-l-4 border-l-red-500';
+                    iconHtml = `<div class="w-6 h-6 rounded bg-red-100 text-red-600 border border-red-200 flex items-center justify-center text-[10px] font-mono font-bold"><i class="fa-solid fa-wheelchair"></i></div>`;
+                }
 
                 monitorList.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded border ${borderClass}">
+                    <div class="flex items-center justify-between p-2 rounded border ${rowClass}">
                         <div class="flex items-center gap-3 w-3/4">
-                            <div class="w-6 h-6 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-mono">#${String(item.ticketNumber).padStart(3,'0')}</div>
+                            ${iconHtml}
                             <div class="font-bold text-sm text-slate-700 truncate">${item.name}</div>
                         </div>
-                        <div class="text-[10px] font-bold text-medical-600 uppercase text-right truncate w-1/4">${purposeDisp}</div>
+                        <div class="text-[10px] font-bold ${isLane ? 'text-red-700' : 'text-medical-600'} uppercase text-right truncate w-1/4">${purposeDisp}</div>
                     </div>
                 `);
             });
