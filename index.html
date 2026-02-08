@@ -410,16 +410,17 @@
                     </div>
                 </div>
 
-                <div class="flex-none h-72 grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-slate-200 z-10 bg-slate-50">
-                    <div class="bg-white rounded-xl border-l-4 border-green-500 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
+                <!-- Footer Announcements with Dynamic Height -->
+                <div class="flex-none min-h-[14rem] grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-slate-200 z-10 bg-slate-50">
+                    <div class="bg-white rounded-xl border-l-4 border-green-500 p-4 flex flex-col shadow-md relative">
                         <h4 class="text-[10px] font-bold text-green-600 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-file-invoice-dollar"></i> Billing / Cashier</h4>
                         <div id="announce-billing" class="text-sm text-slate-600 font-medium h-full pt-4"><span class="text-slate-400 italic text-xs block mt-2">No updates</span></div>
                     </div>
-                    <div class="bg-white rounded-xl border-l-4 border-blue-500 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
+                    <div class="bg-white rounded-xl border-l-4 border-blue-500 p-4 flex flex-col shadow-md relative">
                         <h4 class="text-[10px] font-bold text-blue-600 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-flask"></i> Lab & Pharmacy</h4>
                         <div id="announce-lab" class="text-sm text-slate-600 font-medium h-full pt-4"><span class="text-slate-400 italic text-xs block mt-2">No updates</span></div>
                     </div>
-                    <div class="bg-white rounded-xl border-l-4 border-slate-400 p-3 overflow-hidden flex flex-col justify-center shadow-md relative">
+                    <div class="bg-white rounded-xl border-l-4 border-slate-400 p-4 flex flex-col shadow-md relative">
                         <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-1 flex items-center gap-1 absolute top-3 left-3"><i class="fa-solid fa-bullhorn"></i> General Info</h4>
                         <div id="announce-general" class="text-sm text-slate-600 font-medium h-full pt-4"><span class="text-slate-400 italic text-xs block mt-2">No updates</span></div>
                     </div>
@@ -1417,16 +1418,16 @@
             for(let i=1; i<=wCount; i++) {
                 const ticket = serving.find(t => t.window === i);
                 const winName = state.settings.windowNames?.[i] || `Station ${i}`;
-                const config = state.settings.windowConfigs?.[i]?.[0] || 'All';
-
-                // Calculate pending count for this window
+                
+                // Calculate pending count for this specific window
+                const config = state.settings.windowConfigs?.[i] || ['All'];
                 const isStrictPriorityWindow = config.includes('Priority Lane');
                 const allowedPurposes = config.includes('All') ? null : config;
 
                 const pendingCount = waiting.filter(item => {
-                    // 1. Check if assigned directly
+                    // 1. Direct Assignment
                     if (item.assignedWindow && String(item.assignedWindow) === String(i)) return true;
-                    // 2. If assigned to another window, skip
+                    // 2. Assigned to others (don't count)
                     if (item.assignedWindow && String(item.assignedWindow) !== String(i)) return false;
 
                     // 3. Priority Lane strict check
@@ -1436,7 +1437,7 @@
 
                     // 4. Regular Pool check
                     if (!item.assignedWindow) {
-                        if (!allowedPurposes) return true;
+                        if (!allowedPurposes) return true; // All
                         return allowedPurposes.includes(item.purpose);
                     }
                     return false;
@@ -1467,7 +1468,7 @@
                             ${isPriority ? '<div class="absolute top-0 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-bl font-bold tracking-wider z-10">PRIORITY LANE</div>' : ''}
                             <div class="flex justify-between items-start">
                                 <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">${winName}</div>
-                                <div class="text-[10px] font-bold text-slate-400 bg-white/50 px-1.5 py-0.5 rounded border border-slate-200/50">${pendingCount} Waiting</div>
+                                <div class="text-[10px] font-bold text-slate-400 bg-white/60 px-2 py-0.5 rounded-lg border border-slate-200/50 shadow-sm">${pendingCount} Waiting</div>
                             </div>
                             <div class="text-3xl md:text-4xl font-black text-slate-800 leading-tight line-clamp-1">${ticket.name}</div>
                             <div class="flex justify-between items-end border-t border-slate-200/50 pt-2">
@@ -1483,7 +1484,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between opacity-50 shadow-sm ${itemHeightClass}">
                             <div class="flex justify-between items-start">
                                 <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">${winName}</div>
-                                <div class="text-[10px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">${pendingCount} Waiting</div>
+                                <div class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">${pendingCount} Waiting</div>
                             </div>
                             <div class="text-2xl font-bold text-slate-300 text-center">Available</div>
                             <div class="h-4"></div>
@@ -1554,12 +1555,14 @@
                         dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
                     }
                     el.innerHTML = `
-                        <div class="flex flex-col h-full pt-5">
-                            <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line flex-grow overflow-hidden">${latest.content}</p>
-                            <span class="text-[10px] text-slate-400 font-mono mt-1 text-right block border-t border-slate-100 pt-1 flex-none">${dateStr}</span>
+                        <div class="flex flex-col h-full pt-6">
+                            <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line mb-2">${latest.content}</p>
+                            <div class="mt-auto">
+                                <span class="text-[10px] text-slate-400 font-mono text-right block border-t border-slate-100 pt-1">${dateStr}</span>
+                            </div>
                         </div>`;
                 } else {
-                    el.innerHTML = `<span class="text-slate-400 italic text-xs block mt-6">No updates</span>`;
+                    el.innerHTML = `<span class="text-slate-400 italic text-xs block mt-8">No updates</span>`;
                 }
             });
 
