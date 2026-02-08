@@ -926,6 +926,10 @@
                 document.getElementById('patient-actual-name').value = '';
                 document.getElementById('other-reason-input').value = '';
                 document.getElementById('selected-sub-purpose').value = '';
+                
+                // Explicitly uncheck priority toggle for new session
+                document.getElementById('kiosk-priority').checked = false;
+
                 document.getElementById('other-reason-container').classList.add('hidden');
                 document.getElementById('sub-purpose-section').classList.add('hidden');
                 
